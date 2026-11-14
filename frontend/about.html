@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/jpeg" href="/images/Fire-X.jpeg">
+<link rel="apple-touch-icon" href="/images/Fire-X.jpeg">
+<title>About - NASA FIRE-X</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/ds.css">
+<link rel="stylesheet" href="/static/css/nav.css">
+<style>
+.page-header{padding:120px 0 64px;background:linear-gradient(180deg,rgba(0,245,255,0.04) 0%,transparent 100%);border-bottom:1px solid rgba(0,245,255,0.06);text-align:center}
+.about-section{padding:80px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:28px}
+.info-card{background:var(--bg-surface-2);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:28px;margin-bottom:20px;transition:all .3s}
+.info-card:hover{border-color:rgba(0,245,255,0.2);background:rgba(12,21,37,0.9)}
+.info-card h3{font-family:"Space Grotesk",sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:10px;color:#fff}
+.info-card p{font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.7}
+.sources-table{width:100%;border-collapse:collapse;margin-top:24px;font-size:.83rem}
+.sources-table th{padding:12px 16px;text-align:left;font-size:.72rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;font-family:"JetBrains Mono",monospace;border-bottom:1px solid rgba(255,255,255,.08)}
+.sources-table td{padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.75);vertical-align:top}
+.sources-table tr:hover td{background:rgba(0,245,255,.03)}
+@media(max-width:960px){.two-col,.three-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="navbar" id="navbar">
+  <div class="nav-progress-bar" id="nav-progress"></div>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <img src="/images/Fire-X.jpeg" alt="FIRE-X" class="nav-brand-logo">
+      <div class="nav-brand-text"><div class="nav-brand-name">NASA FIRE-X</div><div class="nav-brand-sub">MICROGRAVITY COMBUSTION INTEL</div></div>
+    </a>
+    <ul class="nav-links" id="nav-links-list">
+      <li><a href="/" class="nav-link">Home</a></li>
+      <li><a href="/analytics" class="nav-link">Analytics</a></li>
+      <li><a href="/explorer" class="nav-link">Data Explorer</a></li>
+      <li><a href="/simulator" class="nav-link">Simulator</a></li>
+      <li><a href="/hardware" class="nav-link">Hardware</a></li>
+      <li><a href="/ai" class="nav-link">AI Assistant</a></li>
+      <li><a href="/about" class="nav-link">About</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="nav-lang-btn" id="nav-lang-btn">EN</button>
+      <a href="/ai" class="nav-ai-btn"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> AI Assistant</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <div class="section-eyebrow" style="justify-content:center">Documentation &amp; Scientific Architecture</div>
+    <h1 class="section-title-xl" style="margin-bottom:16px">About <span class="text-gradient">FIRE-X</span></h1>
+    <p class="section-desc" style="margin:0 auto;text-align:center">NASA Space Apps Challenge 2026 — Flame in Freefall: SI-Powered Fire Safety Insights from Microgravity Combustion Data</p>
+  </div>
+</div>
+
+<section class="about-section">
+  <div class="container">
+    <div class="two-col">
+      <div>
+        <div class="section-eyebrow">Project Overview</div>
+        <h2 class="section-title-xl" style="font-size:2rem;margin-bottom:24px">The Science Behind <span class="text-gradient">FIRE-X</span></h2>
+        <div class="info-card">
+          <h3>Why Microgravity &amp; Partial Gravity?</h3>
+          <p>In microgravity (~0g), buoyancy-driven convection is absent: flames become spherical, low-temperature cool flames (600–800 K) persist after visible quenching, and low ventilation flows (5–15 cm/s) make thin materials MORE flammable than on Earth. Because there is currently no raw partial-gravity flight data in NASA PSI (pending future <strong>LUCI</strong> and <strong>FM2</strong> lunar investigations), FIRE-X bounds Lunar (0.16g) and Martian (0.38g) hazards between <strong>0g ISS forced-flow data</strong> and <strong>1.0g NASA-STD-6001 Test 1 upward screening</strong>, supplemented by <strong>ACME E-FIELD</strong> electric-body-force partial-gravity mimicry.</p>
+        </div>
+        <div class="info-card">
+          <h3>The <span id="about-exp-title">569</span>-Test Canonical PSI Dataset</h3>
+          <p><span id="about-exp-count">569</span> canonical records (407 row-level records from official NASA PSI tables — FLEX PSI-69, BASS-II PSI-25, SAFFIRE-I PSI-98 — plus 162 illustrative, team-compiled records, labelled as such) across <span id="about-fam-count">18</span> NASA PSI investigation sub-suites (6 core challenge programs): <strong>FLEX, FLEX-2 &amp; CFI</strong> (spherical droplets + CO₂ up to 70% &amp; He up to 45% diluent suppression in ISS CIR/MDCA), <strong>BASS &amp; BASS-II</strong>, <strong>SPICE</strong>, and <strong>SLICE</strong> (in the ISS MSG modular fan-driven flow duct), <strong>SAFFIRE-I, -II &amp; -III</strong> (large-scale Cygnus spacecraft burns), <strong>ACME Suite</strong> (6 gaseous-fuel CIR investigations: BRE, CFI, <strong>CFI-G up to 85% O₂ inside-out flames</strong>, CLD, E-FIELD, s-Flame), and <strong>SAME, SAME-R, DAFT &amp; DAFT-2</strong> (smoke aging &amp; lunar/Martian dust discrimination in ISS MSG).</p>
+        </div>
+        <div class="info-card">
+          <h3>Live SQLite SQL-RAG + OpenAI GPT-4o-mini</h3>
+          <p>The platform pairs <strong>OpenAI GPT-4o-mini</strong> with FIRE-X's own <strong>Citation-Locked SQL-RAG</strong> technical architecture querying <code>fire_safety.db</code> on every prompt. <em>Standards distinction:</em> <strong>Citation-Locked RAG</strong> is our custom software architecture (not a NASA standard); <strong>NASA-STD-6001</strong> governs material flammability, offgassing, and compatibility testing; and <strong>NASA-STD-3001</strong> covers spaceflight human-system health, performance, and crew safety requirements.</p>
+        </div>
+        <div class="info-card">
+          <h3>Mission Simulator &amp; Scope Exclusion</h3>
+          <p>The Fire Hazard Index formula <code>FHI = min(10, 5.1 × (X_O2/0.21)^1.5 × (P/101.3)^0.4 × M_f)</code> models Spacecraft, Space Station (ISS), Lunar Base (0.16g), Martian Base (0.38g), Pressurized Rover (≥30% O₂, ≤10.2 psi), and EVA Spacesuit (85–100% O₂, 4.3 psi). <em>Scope Note:</em> Rocket engine propellants (LOX/LH₂, hypergolics) are intentionally excluded because high-pressure turbulent atomization (&gt;50 bar, Fr &gg; 1000) is buoyancy-independent, unlike low-velocity spacecraft cabin fires.</p>
+        </div>
+      </div>
+      <div>
+        <div class="section-eyebrow">Data Sources</div>
+        <h2 class="section-title-xl" style="font-size:2rem;margin-bottom:24px">NASA <span class="text-gradient">Data Provenance</span></h2>
+        <div style="background:var(--bg-surface-2);border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden">
+          <table class="sources-table">
+            <thead><tr><th>Investigation Suite</th><th>Facility / PSI ID</th><th>Tests</th></tr></thead>
+            <tbody>
+              <tr><td>FLEX, FLEX-2 &amp; CFI Droplets (CO₂/He &amp; Cool Flames)</td><td style="font-family:'JetBrains Mono',monospace;color:#00F5FF">ISS CIR (MDCA) · PSI-69/70</td><td data-family-prefix="FLEX">284</td></tr>
+              <tr><td>BASS &amp; BASS-II Solid Fuel Forced Flow</td><td style="font-family:'JetBrains Mono',monospace;color:#00F5FF">ISS MSG (SPICE Duct) · PSI-25</td><td data-family-prefix="BASS">137</td></tr>
+              <tr><td>ACME Suite (BRE, CFI, CFI-G 85% O₂, CLD, E-FIELD, s-Flame)</td><td style="font-family:'JetBrains Mono',monospace;color:#2979FF">ISS CIR (ACME Modular Hardware)</td><td data-family-prefix="ACME">72</td></tr>
+              <tr><td>SAME, SAME-R, DAFT &amp; DAFT-2 (Smoke &amp; Dust Detection)</td><td style="font-family:'JetBrains Mono',monospace;color:#9B59B6">ISS MSG (Aerosol Chamber)</td><td data-family-prefix="SAME,DAFT">54</td></tr>
+              <tr><td>SAFFIRE-I, -II &amp; -III Large-Scale Spacecraft Burns</td><td style="font-family:'JetBrains Mono',monospace;color:#FF5252">Cygnus Autonomous Vehicle · PSI-98</td><td data-family-prefix="SAFFIRE">11</td></tr>
+              <tr><td>SPICE &amp; SLICE Co-Flow Laminar Gas Jet Flames</td><td style="font-family:'JetBrains Mono',monospace;color:#00E676">ISS MSG (SPICE Flow Duct)</td><td data-family-prefix="SLICE,SPICE">11</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:24px;background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.15);border-radius:12px;padding:20px">
+          <div style="font-size:.72rem;color:rgba(0,245,255,.7);font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Technology Stack</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <span class="badge badge-cyan">FastAPI 0.115</span>
+            <span class="badge badge-cyan">OpenAI GPT-4o-mini + SQL-RAG</span>
+            <span class="badge badge-info">SQLite 3 (<span id="about-badge-exp">569</span> Records)</span>
+            <span class="badge badge-info">Chart.js 4</span>
+            <span class="badge badge-info">Three.js r134</span>
+            <span class="badge badge-nominal">ESP32 + MQ-2 Telemetry</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MODULE 2 & 3: CROSS-INVESTIGATION FACILITY & DIAGNOSTIC SENSOR MATRIX ═══ -->
+    <div style="margin-top:64px;">
+      <div class="section-eyebrow">Cross-Investigation Comparison</div>
+      <h2 class="section-title-xl" style="font-size:2rem;margin-bottom:12px">Facility Hardware (<span class="text-gradient">CIR vs MSG vs Cygnus</span>) &amp; Diagnostic Sensor Matrix</h2>
+      <p style="font-size:0.95rem;color:rgba(255,255,255,0.6);max-width:900px;margin-bottom:20px;">
+        Comparison of how NASA microgravity combustion investigations share orbital rack hardware, vary fuel geometries and ambient diluents, and deploy specialized optical, radiometric, and aerosol diagnostics.
+      </p>
+      <div style="background:var(--bg-surface-2);border:1px solid rgba(0,245,255,.15);border-radius:16px;overflow-x:auto;">
+        <table class="sources-table" style="margin-top:0;">
+          <thead>
+            <tr>
+              <th>Orbital Facility &amp; Insert</th>
+              <th>Investigations</th>
+              <th>Fuel Geometry &amp; Phase</th>
+              <th>Controlled vs Varied Parameters</th>
+              <th>Diagnostic Sensors &amp; Instruments</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color:#00F5FF;">ISS CIR + ACME Insert</strong><br><span style="font-size:0.75rem;color:rgba(255,255,255,0.45);">Combustion Integrated Rack</span></td>
+              <td><strong>BRE, CFI, CFI-G, CLD, E-FIELD, s-Flame</strong></td>
+              <td>Gaseous fuels (CH₄, C₂H₄, C₃H₈, n-C₄H₁₀) on flat porous plug (BRE), <strong>6.4 mm spherical porous burner (CFI/CFI-G)</strong>, or coflow nozzle</td>
+              <td>O₂ from 15% up to <strong>85% O₂ (CFI-G inside-out flame)</strong>; CO₂/N₂/He dilution; electric field up to <strong>+5 kV (E-FIELD partial-g mimic)</strong></td>
+              <td>Intensified CCD cameras, OH*/CH* chemiluminescence, IR/UV radiometers, planar laser-induced fluorescence, thermophoretic soot probes</td>
+            </tr>
+            <tr>
+              <td><strong style="color:#2979FF;">ISS CIR + MDCA</strong><br><span style="font-size:0.75rem;color:rgba(255,255,255,0.45);">Multi-user Droplet Combustion Apparatus</span></td>
+              <td><strong>FLEX, FLEX-2, CFI (Droplets)</strong></td>
+              <td>Isolated spherical liquid droplets (1.5–5.0 mm: n-Heptane, Decane, Alcohols)</td>
+              <td>O₂ (14–40%), Pressure (50–150 kPa), <strong>CO₂ (0–70% mole fraction) &amp; He (0–45% mole fraction)</strong> inert suppressants</td>
+              <td>Backlit strobe microscopy (droplet d(t) regression), narrow/wide-band IR radiometers, LLUV low-light cameras, gas mixing manifold</td>
+            </tr>
+            <tr>
+              <td><strong style="color:#FF6B35;">ISS MSG + SPICE Flow Duct</strong><br><span style="font-size:0.75rem;color:rgba(255,255,255,0.45);">Microgravity Science Glovebox</span></td>
+              <td><strong>SPICE, SLICE, BASS, BASS-II</strong></td>
+              <td>Laminar co-flow gas jets (SPICE/SLICE) &amp; solid polymer slabs, rods, and SIBAL cotton-fiberglass strips (BASS/BASS-II)</td>
+              <td>Forced convective fan velocity (<strong>0–55 cm/s</strong>), O₂ concentration (15–30%), sample thickness &amp; nozzle diameter</td>
+              <td>Hot-wire anemometer (flow velocity), color still &amp; high-speed video cameras, radiometers, thermocouple rakes</td>
+            </tr>
+            <tr>
+              <td><strong style="color:#9B59B6;">ISS MSG + Aerosol Chamber</strong><br><span style="font-size:0.75rem;color:rgba(255,255,255,0.45);">Microgravity Science Glovebox</span></td>
+              <td><strong>SAME, SAME-R, DAFT, DAFT-2</strong></td>
+              <td>Overheated wire insulation pyrolysis (Kapton, Teflon, Silicone, Cellulose) + <strong>Lunar/Martian regolith dust simulants (DAFT/DAFT-2)</strong></td>
+              <td>Pyrolysis heating power, aerosol aging/coagulation residence time, dust vs sub-micron smoke particle size distribution</td>
+              <td>3-channel PAMS laser aerosol monitor (M0/M1/M2 moments), ISS photoelectric &amp; ionization smoke detectors, thermal precipitator TEM</td>
+            </tr>
+            <tr>
+              <td><strong style="color:#FF5252;">Cygnus Autonomous Vehicle</strong><br><span style="font-size:0.75rem;color:rgba(255,255,255,0.45);">Post-ISS Undocking Orbital Flight</span></td>
+              <td><strong>SAFFIRE-I, -II &amp; -III</strong></td>
+              <td>Large-scale SIBAL cotton-fiberglass cloth &amp; PMMA sheets (including 9 samples in SAFFIRE-II)</td>
+              <td>21% O₂ (101.3 kPa); forced flow 3–30 cm/s in finite spacecraft volume</td>
+              <td>Thermocouple arrays, radiometers, cabin O₂/CO₂/CO gas sensors, cabin pressure transducers, dual-view video</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ MODULE 4: 3-TIER FIRE SAFETY EQUIPMENT IMPACT & EARTH SPIN-OFFS ═══ -->
+    <div style="margin-top:64px;">
+      <div class="section-eyebrow">Spaceflight &amp; Terrestrial Impact</div>
+      <h2 class="section-title-xl" style="font-size:2rem;margin-bottom:12px">3-Tier Fire Safety Equipment Impact &amp; <span class="text-gradient">Earth Spin-Offs</span></h2>
+      <div class="three-col">
+        <div class="info-card" style="margin-bottom:0;border-color:rgba(0,245,255,0.2);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--neon-cyan);margin-bottom:8px;">TIER 1 // FIRE PREVENTION</div>
+          <h3>Material Screening &amp; Firefighter Gear</h3>
+          <p><strong>In Space:</strong> <code>BASS</code>, <code>BASS-II</code>, <code>ACME BRE</code>, and <code>SAFFIRE-I/II/III</code> show how low forced airflow (5–15 cm/s) and elevated O₂ alter solid flammability limits, informing material screening for Artemis Lunar Bases and Pressurized Rovers.<br><br><strong>On Earth (<a href="https://spinoff.nasa.gov/node/9918" target="_blank" style="color:#00F5FF;">Spinoff 9918</a> &amp; <a href="https://spinoff.nasa.gov/node/9582" target="_blank" style="color:#00F5FF;">9582</a>):</strong> <strong>Project FIRES (1982, NASA Marshall + FEMA)</strong> transferred Apollo spacesuit thermal protection materials to firefighter attire; <strong>JSC + Scott Aviation</strong> developed <strong>20 lb, 4,500 psi</strong> fiberglass-wrapped aluminum air tanks (13 lb lighter than conventional tanks).</p>
+        </div>
+        <div class="info-card" style="margin-bottom:0;border-color:rgba(155,89,182,0.3);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#9B59B6;margin-bottom:8px;">TIER 2 // FIRE DETECTION</div>
+          <h3>Smoke Aging &amp; Dust Discrimination</h3>
+          <p><strong>In Space:</strong> <code>SAME</code> and <code>SAME-R</code> measured microgravity smoke particle nucleation and agglomeration, while <code>DAFT</code> and <code>DAFT-2</code> used the same hardware to detect dust.<br><br><strong>On Earth (<a href="https://spinoff.nasa.gov/node/9407" target="_blank" style="color:#9B59B6;">Spinoff 9407</a>):</strong> The Space Shuttle avionics <strong>Brunswick Incipient Fire Detector</strong> discriminates combustion particles from background dust, cutting nuisance alarms in industrial facilities and underground mines.</p>
+        </div>
+        <div class="info-card" style="margin-bottom:0;border-color:rgba(0,230,118,0.25);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#00E676;margin-bottom:8px;">TIER 3 // FIRE SUPPRESSION</div>
+          <h3>He / CO₂ Diluents &amp; Fine Water Mist</h3>
+          <p><strong>In Space:</strong> <code>FLEX</code> (<code>PSI-69</code>) quantified droplet extinction limits across <strong>CO₂ (up to 70%)</strong> and <strong>Helium (He, up to 45%)</strong> diluents, alongside ISS Portable Fine Water Mist (PFWM) extinguishers.<br><br><strong>Historical Lessons (<a href="https://sma.nasa.gov/sma-disciplines/accllp/apollo-13" target="_blank" style="color:#00E676;">Apollo 13</a> &amp; <a href="https://www.nasa.gov/history/25-years-ago-fire-aboard-space-station-mir/" target="_blank" style="color:#00E676;">Mir 1997</a>):</strong> Apollo 13 Oxygen Tank No. 2 ruptured at ~56h after 65V DC ground-test switch welding (1,000°F); Mir's 1997 <em>Kvant-1</em> oxygen-candle fire forced 36 hours of mask use.</p>
+        </div>
+      </div>
+
+      <!-- OFFICIAL NASA SOURCES BAR -->
+      <div style="margin-top:28px;background:var(--bg-surface-2);border:1px solid rgba(0,245,255,0.15);border-radius:14px;padding:20px 24px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#00F5FF;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em;">Official Verified NASA Data &amp; Resource Links</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:0.8rem;">
+          <a href="https://psi.nasa.gov/physci/repo/search?q=combustion" target="_blank" class="badge badge-cyan" style="text-decoration:none;">PSI Combustion Repository ↗</a>
+          <a href="https://sma.nasa.gov/sma-disciplines/accllp/apollo-1" target="_blank" class="badge badge-info" style="text-decoration:none;">Apollo 1 Investigation ↗</a>
+          <a href="https://sma.nasa.gov/sma-disciplines/accllp/apollo-13" target="_blank" class="badge badge-info" style="text-decoration:none;">Apollo 13 Lessons Learned ↗</a>
+          <a href="https://www.nasa.gov/history/25-years-ago-fire-aboard-space-station-mir/" target="_blank" class="badge badge-info" style="text-decoration:none;">Mir 1997 Fire History ↗</a>
+          <a href="https://spinoff.nasa.gov/node/9582" target="_blank" class="badge badge-nominal" style="text-decoration:none;">Spinoff: Air Tanks (9582) ↗</a>
+          <a href="https://spinoff.nasa.gov/node/9407" target="_blank" class="badge badge-nominal" style="text-decoration:none;">Spinoff: Fire Detector (9407) ↗</a>
+          <a href="https://spinoff.nasa.gov/node/9918" target="_blank" class="badge badge-nominal" style="text-decoration:none;">Spinoff: Fire Attire (9918) ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="border-top:1px solid rgba(0,245,255,0.08);background:#020409;padding:40px 0;margin-top:0;">
+  <div class="container-wide" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <img src="/images/Fire-X.jpeg" alt="FIRE-X" style="width:36px;height:36px;border-radius:8px;border:1px solid rgba(0,245,255,0.25);">
+      <div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:1rem;color:#fff;">NASA FIRE-X</div>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+<span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.3);">© 2026 NASA FIRE-X · NASA Space Apps Challenge 2026 · Data: NASA PSI · <span id="about-footer-exp">569</span> Canonical Tests</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+fetch('/api/stats')
+  .then(r => r.json())
+  .then(json => {
+    const data = json.data || json;
+    if (data.total_experiments) {
+      ['about-exp-title', 'about-exp-count', 'about-badge-exp', 'about-footer-exp'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = data.total_experiments;
+      });
+    }
+    if (data.total_families) {
+      const famEl = document.getElementById('about-fam-count');
+      if (famEl) famEl.textContent = data.total_families;
+    }
+    const famList = data.families_distribution || data.families_dist;
+    if (Array.isArray(famList)) {
+      document.querySelectorAll('td[data-family-prefix]').forEach(td => {
+        const prefixes = td.dataset.familyPrefix.split(',').map(s => s.trim().toUpperCase());
+        const total = famList
+          .filter(item => prefixes.some(p => (item.family || '').toUpperCase().startsWith(p)))
+          .reduce((sum, item) => sum + (item.count || 0), 0);
+        if (total > 0) td.textContent = total;
+      });
+    }
+  })
+  .catch(() => {});
+</script>
+<script src="/static/js/nav.js?v=6.4"></script>
+</body>
+</html>

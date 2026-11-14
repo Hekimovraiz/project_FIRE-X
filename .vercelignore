@@ -1,0 +1,12 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.git/
+.agents/
+presentation/
+FIRE-X_Teqdimat.pdf
+docs/
+scripts/
+analytics_dashboard_v2.py

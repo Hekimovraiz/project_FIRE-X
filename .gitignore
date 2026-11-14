@@ -1,0 +1,38 @@
+# Environment & secrets — NEVER commit these
+.env
+*.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+
+# SQLite DBs (keep pre-built canonical databases tracked for cloud deployment)
+*.db
+!fire_safety.db
+!backend/fire_safety.db
+!nasa_combustion_data.db
+
+# Data files (optional — add back if desired)
+# data/processed/
+
+# System
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# ESP32 Wi-Fi credentials
+hardware/**/secrets.h

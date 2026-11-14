@@ -1,0 +1,8 @@
+Experiment_ID,Dataset_Family,Sample_Description,Fuel_Material,Thickness_mm,Oxygen_Pct,Pressure_kPa,Airflow_Velocity_cms,Spread_Rate_mms,Burn_Time_s,Peak_Heat_Flux_kWm2,Extinction_Outcome,Notes
+SAFFIRE-II-S1,SAFFIRE-II,Thin Silicon-Treated Cotton (0.3mm),SIBAL Cotton-Fiberglass,0.3,21.0,101.3,20.0,1.62,48.0,22.4,Complete Consumption,Sample 1 of 9 in multi-material array; steady upward/concurrent spread
+SAFFIRE-II-S4,SAFFIRE-II,PMMA Sheet with Surface Grooves,PMMA (Acrylic),2.0,21.0,101.3,20.0,0.45,185.0,34.1,Self-Extinguished,Grooved acrylic panel tested for morphological flame attachment
+SAFFIRE-II-S7,SAFFIRE-II,Nomex HT90-40 Flame Retardant Fabric,Nomex Fabric,0.5,21.0,101.3,20.0,0.12,14.0,11.2,Quenched Near Igniter,Passed spacecraft flammability threshold at 21% O2 normoxic condition
+SAFFIRE-II-S8,SAFFIRE-II,Thick PMMA Slab (10mm),PMMA (Acrylic),10.0,21.0,101.3,20.0,0.18,310.0,28.9,Radiative Quenching,Thermal conduction into thick solid core quenched gas-phase reaction
+SAFFIRE-II-S9,SAFFIRE-II,SIBAL Reference Fabric Sample,SIBAL Cotton-Fiberglass,0.4,21.0,101.3,20.0,1.48,62.0,24.8,Complete Consumption,Reference calibration sample matching SAFFIRE-I material composition
+SAFFIRE-III-01,SAFFIRE-III,Large Scale SIBAL Panel (0.4x0.94m) Low Flow,SIBAL Cotton-Fiberglass,0.4,21.0,101.3,17.0,1.34,710.0,23.5,Complete Consumption,Tested lower forced convective ventilation velocity (17 cm/s) on large fabric
+SAFFIRE-III-02,SAFFIRE-III,Large Scale SIBAL Panel High Flow Step,SIBAL Cotton-Fiberglass,0.4,21.0,101.3,27.0,2.05,460.0,31.2,Complete Consumption,Demonstrated linear proportionality between oxidizer mass flux and spread rate
