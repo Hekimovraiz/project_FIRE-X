@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<title>FIRE-X — Flame in Freefall (10 Səhifəlik Təqdimat)</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    html, body { width: 1280px; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .slide { page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; }
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+  }
+  :root {
+    --bg: #050912;
+    --panel: #0b1220;
+    --panel-2: #0f1729;
+    --line: rgba(255, 255, 255, 0.09);
+    --line-strong: rgba(51, 214, 230, 0.24);
+    --ink: #eef2f8;
+    --muted: #8c97ad;
+    --fire: #ff6a2b;
+    --cyan: #33d6e6;
+    --green: #2fd67b;
+    --amber: #ffc24b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+  }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    position: relative;
+    overflow: hidden;
+    padding: 42px 60px 52px;
+    background:
+      radial-gradient(960px 460px at 88% -8%, rgba(255, 106, 43, 0.08), transparent 60%),
+      radial-gradient(760px 420px at 12% 108%, rgba(51, 214, 230, 0.05), transparent 60%),
+      var(--bg);
+  }
+  .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.018) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  h1, h2, h3 { font-family: 'Space Grotesk', 'Segoe UI', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  h2 { font-size: 33px; line-height: 1.12; margin-bottom: 8px; }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fire);
+    margin-bottom: 9px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .kicker::before {
+    content: "";
+    display: inline-block;
+    width: 18px;
+    height: 2px;
+    background: var(--fire);
+  }
+  .lead { font-size: 15.5px; color: var(--muted); max-width: 960px; line-height: 1.48; }
+
+  .foot {
+    position: absolute !important;
+    left: 60px;
+    right: 60px;
+    bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5e687e;
+    letter-spacing: 0.08em;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 10px;
+  }
+
+  .accent { color: var(--fire); }
+  .cyan { color: var(--cyan); }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+
+  .card {
+    background: rgba(11, 18, 32, 0.92);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .card-top-fire { border-top: 2px solid var(--fire); }
+  .card-top-cyan { border-top: 2px solid var(--cyan); }
+  .card-top-green { border-top: 2px solid var(--green); }
+  .card-top-amber { border-top: 2px solid var(--amber); }
+
+  .card h3 { font-size: 16px; margin-bottom: 6px; color: var(--ink); }
+  .card p, .card li { font-size: 13px; color: #b5bfd1; line-height: 1.46; }
+
+  .num { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 40px; line-height: 1; }
+  .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+  .grid { display: grid; gap: 14px; }
+
+  ul.clean { list-style: none; }
+  ul.clean li { padding-left: 15px; position: relative; margin-bottom: 6px; font-size: 13px; color: #bcc6d8; line-height: 1.44; }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 5px;
+    height: 5px;
+    background: var(--fire);
+    border-radius: 1px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    padding: 4px 9px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    color: #cdd5e3;
+    margin: 0 5px 4px 0;
+  }
+  .rule { height: 2px; width: 58px; background: var(--fire); margin: 16px 0 18px; }
+
+  /* Framed image boxes */
+  .frame {
+    background: #04070f;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  }
+  .frame img { width: 100%; display: block; object-fit: cover; }
+  .cap {
+    padding: 8px 12px;
+    background: rgba(9, 14, 26, 0.96);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: #9ba7be;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .cap b { color: var(--ink); font-weight: 600; }
+
+  /* Slide 1: Cover */
+  .cover { padding: 0; }
+  .cover::before { display: none; }
+  .cover-bg {
+    position: absolute !important;
+    inset: 0;
+    width: 1280px;
+    height: 720px;
+    object-fit: cover;
+    z-index: 0 !important;
+  }
+  .cover-shade {
+    position: absolute !important;
+    inset: 0;
+    background: linear-gradient(90deg, #050912 28%, rgba(5, 9, 18, 0.86) 44%, rgba(5, 9, 18, 0.14) 68%, rgba(5, 9, 18, 0.0) 100%);
+    z-index: 1 !important;
+  }
+  .cover-content {
+    position: absolute !important;
+    left: 64px;
+    top: 98px;
+    width: 530px;
+    z-index: 2 !important;
+  }
+  .cover-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .cover-brand img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    object-fit: cover;
+  }
+  .cover-content h1 { font-size: 86px; line-height: 0.94; letter-spacing: -0.03em; }
+  .cover-sub {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 21px;
+    color: #d6deec;
+    margin-top: 16px;
+    line-height: 1.38;
+    font-weight: 500;
+  }
+  .cover-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 14px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #9ba7bd;
+  }
+  .cover-pills div {
+    border-left: 2px solid rgba(51, 214, 230, 0.45);
+    padding-left: 10px;
+    line-height: 1.35;
+  }
+  .cover-team {
+    position: absolute !important;
+    left: 64px;
+    bottom: 40px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.65;
+    z-index: 2 !important;
+  }
+  .cover-team b { color: var(--ink); font-weight: 600; }
+  .cover-fig {
+    position: absolute !important;
+    right: 34px;
+    bottom: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: rgba(238, 242, 248, 0.65);
+    background: rgba(5, 9, 18, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 2 !important;
+  }
+
+  /* Problem slide items */
+  .incident { border-left: 2px solid var(--fire); padding: 3px 0 3px 13px; }
+  .incident .yr { font-family: 'JetBrains Mono', monospace; color: var(--fire); font-size: 12px; font-weight: 600; }
+  .incident h3 { font-size: 16px; margin: 2px 0 3px; }
+  .incident p { font-size: 12.5px; color: #a7b1c4; line-height: 1.4; }
+
+  .bar { height: 9px; border-radius: 3px; background: #182235; overflow: hidden; display: flex; }
+  .bar span { display: block; height: 100%; }
+
+  table.t { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.t th {
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.t td { padding: 7.5px 8px; border-bottom: 1px solid var(--line); color: #c8d0de; }
+  table.t td:first-child { color: var(--ink); font-weight: 600; }
+  .ok { color: var(--green); font-family: 'JetBrains Mono', monospace; font-weight: 700; text-align: right; }
+
+  .flow { display: flex; align-items: center; gap: 8px; }
+  .flow .node {
+    flex: 1;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+  }
+  .flow .node b { display: block; font-family: 'Space Grotesk'; font-size: 13.5px; margin-bottom: 2px; color: var(--ink); }
+  .flow .node span { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--cyan); }
+  .flow .arrow { color: var(--fire); font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1: COVER (Microgravity CIR Flame Visual — Zero Breadboard)        -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide cover">
+  <img class="cover-bg" src="assets/cover_microgravity_flame.jpg" alt="ISS CIR / MDCA mikroyerçəkim sferik alov">
+  <div class="cover-shade"></div>
+  <div class="cover-content">
+    <div class="cover-brand">
+      <img src="assets/logo_firex.jpg" alt="FIRE-X loqosu">
+      <div class="kicker" style="margin:0">NASA Space Apps Challenge 2026 · Flame in Freefall</div>
+    </div>
+    <h1>FIRE<span class="accent">-X</span></h1>
+    <div class="cover-sub">Mikroyerçəkim yanma datasını kosmik yaşayış mühitləri üçün anlaşılan yanğın təhlükəsizliyi qərarlarına çevirən Sİ-dashboard</div>
+    <div class="rule"></div>
+    <div class="cover-pills">
+      <div><b style="color:var(--ink)">569 Kanonik Sınaq</b><br>407 rəsmi PSI + 162 illüstrativ</div>
+      <div><b style="color:var(--ink)">0g – 1g Sərhəd Modeli</b><br>Ay (0.16g) və Mars (0.38g) proqnozu</div>
+      <div><b style="color:var(--ink)">Mənbə-Kilidli SQL-RAG</b><br>Halüsinasiyasız Sİ tədqiqat reytinqi</div>
+      <div><b style="color:var(--ink)">Canlı Fiziki Stansiya</b><br>ESP32 + MQ-2 + MQ-4 + IR alov</div>
+    </div>
+  </div>
+  <div class="cover-team">
+    <b>Team SpaceAz</b> — NASA Space Apps Ganja 2026 &nbsp;|&nbsp; <span class="cyan">01 / 10</span><br>
+    Murad Fatullazada · Sabir Məmmədzadə · Raiz Həkimov · Şahvələd Vəlizadə · Hüseyn Alırzayev
+  </div>
+  <div class="cover-fig">ISS CIR / MDCA Kvars Baxış Pəncərəsi · 0g Sferik Diffuziya Alovu</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2: 01 · PROBLEM                                                    -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">01 · Problem</div>
+  <h2>Kosmosda yanğın başqa cür davranır — və səhv bahalı başa gəlir</h2>
+  <p class="lead">Mikroyerçəkimdə təbii konveksiya (buoyancy) yoxdur: alov yuxarı uzanan damcı şəklində deyil, oksigeni yalnız diffuziya ilə alan mavi sferik kürəyə çevrilir. NASA PSI bazasındakı onilliklərin sınaq nəticələrini tapmaq, müqayisə etmək və ekipaj mühitinə uyğun şərh etmək çətindir.</p>
+
+  <div class="grid" style="grid-template-columns: 1.48fr 1fr; gap: 22px; margin-top: 20px; align-items: start;">
+    <div>
+      <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="card">
+          <div class="incident"><div class="yr">1967 · APOLLO 1</div><h3>Buraxılış sınağında yanğın</h3><p>Saf oksigenli kabində qısaqapanma saniyələr içində kabini bürüdü — 3 ekipaj üzvü həlak oldu.</p></div>
+        </div>
+        <div class="card">
+          <div class="incident"><div class="yr">1970 · APOLLO 13</div><h3>Oksigen çəni partlayışı</h3><p>Aya uçuş zamanı 2 saylı oksigen çənində daxili alışma — missiyanın təcili xilas rejiminə keçidi.</p></div>
+        </div>
+        <div class="card">
+          <div class="incident"><div class="yr">1997 · MİR STANSİYASI</div><h3>Oksigen generatoru yanğını</h3><p>Orbital stansiyada litium-perklorat şamı nasazlığı nəticəsində intensiv kabin yanğını.</p></div>
+        </div>
+        <div class="card">
+          <div class="incident"><div class="yr">2026 · ARTEMİS II</div><h3>Uçuşda tüstü siqnalı</h3><p>Missiya zamanı kabində tüstü detektoru işə düşdü — Yerdən təxminən 80 000 mil məsafədə.</p></div>
+        </div>
+      </div>
+
+      <div class="card card-top-fire" style="margin-top: 14px; display: flex; gap: 22px; align-items: center;">
+        <div style="flex: 1.55;">
+          <div style="font-family:'Space Grotesk'; font-size: 18px; line-height: 1.38; color: var(--ink); font-weight: 600;">
+            Ay bazası və hermetik roverlərdə atmosfer <span class="accent">≥30% O₂</span> və <span class="accent">≤10.2 psi</span> olacaq — Yerdəkindən 40%-dən çox oksigen.
+          </div>
+          <div style="font-size: 12.5px; color: var(--muted); margin-top: 6px;">Challenge mətnindən: skafandrlar isə 4.3 psi təzyiqdə 100% O₂ ilə doldurulur — materiallar xeyli tez alışır.</div>
+        </div>
+        <div style="flex: 1; border-left: 1px solid var(--line); padding-left: 18px;">
+          <div class="label" style="margin-top:0">NASA 3-Səviyyəli Müdafiə</div>
+          <div style="font-family:'Space Grotesk'; font-size: 15.5px; margin-top: 6px; line-height: 1.55; color: var(--ink);">
+            1. Qarşısının alınması<br>
+            2. Aşkarlama<br>
+            3. Söndürmə
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="frame">
+        <img src="assets/iss_flame_chamber.jpg" style="height: 318px; object-fit: cover;" alt="Kosmik gəmi müşahidə pəncərəsi və yanma fizikası">
+        <div class="cap"><span><b>0g Yanma Fizikası</b> · Konveksiyasız diffuziya</span><span class="cyan">FLEX / MDCA</span></div>
+      </div>
+      <div class="card card-top-cyan" style="padding: 13px 16px;">
+        <div class="label" style="margin:0 0 4px">Əsas Boşluq</div>
+        <p style="font-size:12.8px">Tədqiqatçılar PSI cədvəllərini birləşdirmək, materialları müqayisə etmək və Yerdəki <span style="color:var(--ink)">1g</span> sınaqları ilə <span style="color:var(--ink)">0g</span> uçuş məlumatını əlaqələndirmək üçün vahid alətə ehtiyac duyur.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>02 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3: 02 · HƏLL VƏ PLATFORMA ARXİTEKTURASI                            -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">02 · Həll və Platforma</div>
+  <h2>Bir platforma: tap, müqayisə et, şərh et, qərar ver</h2>
+  <p class="lead">FIRE-X yeddi inteqrasiya edilmiş veb-moduldan və real fiziki sensor stansiyasından ibarətdir. Hər modul NASA Space Apps challenge-in konkret bir mühəndislik məqsədinə cavab verir.</p>
+
+  <div class="grid" style="grid-template-columns: 1.05fr 1.25fr; gap: 22px; margin-top: 18px; align-items: start;">
+    <div>
+      <div class="frame">
+        <img src="assets/shot_home.jpg" style="height: 315px; object-fit: cover; object-position: top;" alt="FIRE-X Ana Səhifə İnterfeysi">
+        <div class="cap"><span><b>FIRE-X Platforması</b> · Canlı Veb İnterfeys</span><span class="green">● ONLAYN</span></div>
+      </div>
+      <div class="card" style="margin-top: 12px; padding: 12px 14px;">
+        <div class="label" style="margin:0 0 8px">Texnoloji Yığın və Standartlar</div>
+        <div>
+          <span class="tag">FastAPI</span>
+          <span class="tag">SQLite SQL-RAG</span>
+          <span class="tag">OpenAI GPT-4o-mini</span>
+          <span class="tag">Three.js / WebGL</span>
+          <span class="tag">Chart.js</span>
+          <span class="tag">ESP32 / C++</span>
+          <span class="tag">AZ / EN İnterfeys</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="card card-top-cyan">
+        <h3><span class="cyan">01 ·</span> Analitika Mərkəzi</h3>
+        <p>Sönmə diametri – O₂ asılılığı, konvektiv hava axını həddləri, sönmə taksonomiyası və interaktiv 3D/4D Holo-Lab.</p>
+      </div>
+      <div class="card card-top-cyan">
+        <h3><span class="cyan">02 ·</span> Məlumat Kəşfiyyatı</h3>
+        <p>569 sınaq üzrə çoxölçülü filtr (ailə, yanacaq, nəticə, O₂), detal baxışı, 2–4 sınağın müqayisəsi, CSV ixracı.</p>
+      </div>
+      <div class="card card-top-fire">
+        <h3><span class="accent">03 ·</span> Missiya Simulyatoru</h3>
+        <p>BKS, Orion, Ay bazası, Mars bazası, Rover və EVA skafandrı üçün FHI risk indeksi və Sİ tədqiqat reytinqi.</p>
+      </div>
+      <div class="card card-top-fire">
+        <h3><span class="accent">04 ·</span> Sİ Köməkçi (SQL-RAG)</h3>
+        <p>Canlı SQL sorğusu + GPT-4o-mini: cavablar yalnız bazadakı konkret PSI qeydlərinə istinad edir.</p>
+      </div>
+      <div class="card card-top-green">
+        <h3><span class="green">05 ·</span> Hardware Lab</h3>
+        <p>ESP32 + MQ-2 + MQ-4 + IR alov + Aktiv Buzzer + 3D Snap-Fit korpus (.STL) və saytdan iki tərəfli idarəetmə.</p>
+      </div>
+      <div class="card card-top-amber">
+        <h3><span class="amber">06 ·</span> Haqqında / Mənbələr</h3>
+        <p>Tədqiqatlararası avadanlıq matrisi, NASA-STD-6001B / 3001 standartları, spinoff-lar və rəsmi PSI linkləri.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>03 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4: 03 · KANONİK DATA VƏ MƏNBƏ ŞƏFFAFLIĞI                          -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">03 · Data və Mənbə Şəffaflığı</div>
+  <h2>569 qeyd, 18 tədqiqat ailəsi — hər rəqəmin mənbəyi açıq göstərilir</h2>
+
+  <div class="grid" style="grid-template-columns: 1fr 1.18fr; gap: 20px; margin-top: 16px; align-items: start;">
+    <div>
+      <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px;">
+        <div class="card" style="padding:12px 14px"><div class="num">569</div><div class="label">Ümumi Qeyd</div></div>
+        <div class="card card-top-cyan" style="padding:12px 14px"><div class="num cyan">407</div><div class="label">NASA PSI Cədvəli</div></div>
+        <div class="card card-top-amber" style="padding:12px 14px"><div class="num amber">162</div><div class="label">İllüstrativ (Nəşr)</div></div>
+      </div>
+
+      <div class="bar" style="margin-top: 12px;">
+        <span style="width:71.5%; background:var(--cyan);"></span>
+        <span style="width:28.5%; background:var(--amber);"></span>
+      </div>
+      <p style="font-size: 13px; color: #c0cadb; margin-top: 10px; line-height: 1.48;">
+        Sətir-sətir rəsmi PSI cədvəllərindən: <b style="color:var(--ink)">FLEX</b> (PSI-69: 274), <b style="color:var(--ink)">BASS-II</b> (PSI-25: 129), <b style="color:var(--ink)">SAFFIRE-I</b> (PSI-98: 4). Digər tədqiqatlar (ACME, SAME, SPICE, SLICE, DAFT…) nəşrlərdən tərtib olunub və bütün sistemdə <span class="amber" style="font-weight:600">⚠ illüstrativ</span> kimi işarələnir.
+      </p>
+
+      <div class="card" style="padding: 10px 14px; margin-top: 12px;">
+        <table class="t" style="font-size: 12px;">
+          <tr><th>Qurğu / Platforma</th><th>Tədqiqat Ailələri</th><th>Yanacaq Növü</th></tr>
+          <tr><td>ISS CIR · MDCA</td><td>FLEX, FLEX-2, CFI</td><td>Maye damcılar</td></tr>
+          <tr><td>ISS CIR · ACME</td><td>BRE, CLD, s-Flame, E-FIELD, CFI-G</td><td>Qaz alovları</td></tr>
+          <tr><td>ISS MSG · SPICE kanalı</td><td>BASS, BASS-II, SPICE, SLICE</td><td>Bərk + qaz</td></tr>
+          <tr><td>ISS MSG · aerozol</td><td>SAME, SAME-R, DAFT</td><td>Tüstü / toz</td></tr>
+          <tr><td>Cygnus Kosmik Gəmisi</td><td>SAFFIRE-I, -II, -III</td><td>İri ölçülü bərk</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="frame">
+        <img src="assets/shot_explorer.jpg" style="width: 100%; height: auto; object-fit: contain; background: #040812;" alt="Data Explorer 569 qeyd və mənbə nişanı">
+        <div class="cap">
+          <span><b>Data Explorer</b> · API, CSV və cədvəldə görünən mənbə etiketi</span>
+          <span class="amber">⚠ ILLUSTRATIVE FİLTRİ</span>
+        </div>
+      </div>
+      <div class="card" style="margin-top: 10px; padding: 10px 14px;">
+        <p style="font-size: 12.2px; color: var(--muted);">Hər sətirdə saxlanılır: <span style="color:var(--ink)">O₂ mol %</span>, <span style="color:var(--ink)">təzyiq (kPa)</span>, <span style="color:var(--ink)">CO₂/He durulaşdırma</span>, <span style="color:var(--ink)">hava axını (sm/s)</span>, <span style="color:var(--ink)">yanma müddəti</span>, <span style="color:var(--ink)">sönmə diametri</span> və <span style="color:var(--ink)">rəsmi PSI linki</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>04 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5: 04 · ANALİTİKA MƏRKƏZİ (Dedicated Page with User's 3 Images)    -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide" style="padding: 36px 56px 48px;">
+  <div class="kicker" style="margin-bottom: 6px;">04 · Analitika Mərkəzi</div>
+  <h2 style="font-size: 30px; margin-bottom: 12px;">569 sınaq üzrə empirik sönmə qanunauyğunluqları və 3D/4D Holo-Lab</h2>
+
+  <!-- Top Row: User Image 1 & User Image 2 matched in aspect ratio -->
+  <div class="grid" style="grid-template-columns: 1.16fr 1fr; gap: 14px;">
+    <div class="frame">
+      <img src="assets/analytics_1.jpg" style="width: 100%; height: 226px; object-fit: cover; background: #040812;" alt="Alov sönmə diametri vs O2 və yanma müddəti vs hava axını">
+      <div class="cap">
+        <span><b>O₂ Həddi &amp; Axın:</b> dₑ = 2.85·e^(-0.038·O₂) · R² = 0.894</span>
+        <span class="cyan">1.8 – 18.5 sm/s</span>
+      </div>
+    </div>
+
+    <div class="frame">
+      <img src="assets/analytics_2.jpg" style="width: 100%; height: 226px; object-fit: cover; background: #040812;" alt="Yanacaq alovlanma matrisi və sönmə nəticələrinin tezlikləri">
+      <div class="cap">
+        <span style="white-space:nowrap"><b>Taksonomiya:</b> 61.4% Radiativ · 18.6% Blowoff · 12.2% Bitmə</span>
+        <span class="green" style="white-space:nowrap">N=569</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row: User Image 3 + Quantitative Scientific Summary -->
+  <div class="grid" style="grid-template-columns: 1.38fr 1fr; gap: 14px; margin-top: 12px; align-items: stretch;">
+    <div class="frame">
+      <img src="assets/analytics_3.jpg" style="width: 100%; height: 220px; object-fit: contain; background: #040812;" alt="İnteraktiv 3D/4D Yanma Holo-Laboratoriyası FLEX-042">
+      <div class="cap">
+        <span><b>WebGL 3D/4D Saçılma Kubu:</b> O₂ × Təzyiq × Diametr · Seçilmiş: FLEX-042 (dₑ = 1.28 mm)</span>
+        <span class="cyan">3D HOLO-LAB</span>
+      </div>
+    </div>
+
+    <div class="card card-top-cyan" style="display:flex; flex-direction:column; justify-content:space-between; padding: 14px 16px;">
+      <div>
+        <div class="label" style="margin:0 0 8px">Mühəndislik Nəticələri</div>
+        <ul class="clean" style="margin:0">
+          <li><b style="color:var(--ink)">Eksponensial O₂ Riski:</b> Oksigen artdıqca sönmə diametri kəskin kiçilir — yüksək O₂ kabinlərdə kiçik qığılcım belə davamlı alova çevrilir.</li>
+          <li><b style="color:var(--ink)">Optimal Axın Dəhlizi:</b> 1.8 sm/s-dən aşağı axında radiativ soyuma, 18.5 sm/s-dən yuxarı axında isə konvektiv üfürmə (blowoff) baş verir.</li>
+          <li><b style="color:var(--ink)">Radiativ Dominantlıq:</b> Orbital testlərin 61.4%-i (297 sınaq) istilik itkisi hesabına öz-özünə sönür — ventilyasiya idarəetməsi kritikdir.</li>
+        </ul>
+      </div>
+      <div style="font-family:'JetBrains Mono'; font-size:11px; color:var(--cyan); border-top:1px solid var(--line); padding-top:8px;">
+        Hər qrafik nöqtəsi canlı SQLite bazası ilə sinxronlaşdırılıb.
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>05 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6: 05 · MİSSİYA SİMULYATORU VƏ 0G–1G FİZİKA MÜHƏRRİKİ              -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">05 · Missiya Simulyatoru və Fizika</div>
+  <h2>Hansı tədqiqat <span class="accent">mənim</span> missiyam üçün vacibdir?</h2>
+  <p class="lead">İstifadəçi kosmik yaşayış mühitini seçir — FIRE-X atmosferə (O₂, təzyiq), cazibəyə və hava axınına görə sınaqları reytinqləyir, FHI indeksini və lazımi boğucu qaz qatılığını hesablayır.</p>
+
+  <div class="grid" style="grid-template-columns: 1.02fr 1.18fr; gap: 20px; margin-top: 16px; align-items: start;">
+    <div style="display:flex; flex-direction:column; gap:11px;">
+      <div class="card" style="padding: 12px 16px;">
+        <div class="label" style="margin:0 0 6px">6 Ekipaj Mühiti</div>
+        <table class="t" style="font-size:12px">
+          <tr><td>BKS (ISS · 0g)</td><td>21% O₂ · 14.7 psi</td><td class="cyan" style="text-align:right;font-family:'JetBrains Mono'">FHI 5.1</td></tr>
+          <tr><td>Orion Kosmik Gəmisi</td><td>26.5% O₂ · 10.2 psi</td><td class="cyan" style="text-align:right;font-family:'JetBrains Mono'">FHI 6.2</td></tr>
+          <tr><td>Ay Bazası (0.16g)</td><td>34% O₂ · 8.2 psi</td><td class="amber" style="text-align:right;font-family:'JetBrains Mono'">FHI 8.3</td></tr>
+          <tr><td>Mars Bazası (0.38g)</td><td>34% O₂ · 8.2 psi</td><td class="amber" style="text-align:right;font-family:'JetBrains Mono'">FHI 8.3</td></tr>
+          <tr><td>Hermetik Rover</td><td>32% O₂ · 10.2 psi</td><td class="amber" style="text-align:right;font-family:'JetBrains Mono'">FHI 8.3</td></tr>
+          <tr><td>EVA Skafandr</td><td>100% O₂ · 4.3 psi</td><td class="accent" style="text-align:right;font-family:'JetBrains Mono'">FHI 10.0</td></tr>
+        </table>
+      </div>
+
+      <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 11px;">
+        <div class="card card-top-cyan" style="padding: 12px 14px;">
+          <div class="label" style="margin:0 0 6px">Qismən Cazibə: 0g – 1g Sərhədi</div>
+          <p style="font-size:12.2px">PSI-də hələ real qismən cazibə datası yoxdur (<b style="color:var(--ink)">LUCI</b> və <b style="color:var(--ink)">FM2</b> gözlənilir). FIRE-X Ay (0.16g) və Mars (0.38g) üçün riski <b style="color:var(--ink)">0g PSI</b> ilə <b style="color:var(--ink)">1g NASA-STD-6001</b> arasında sərhədləyir; <b style="color:var(--ink)">ACME E-FIELD</b> aralıq nöqtədir.</p>
+        </div>
+        <div class="card card-top-fire" style="padding: 12px 14px;">
+          <div class="label" style="margin:0 0 6px">Yanğın Təhlükə İndeksi</div>
+          <div style="font-family:'JetBrains Mono'; font-size:14.5px; color:var(--ink); margin: 4px 0 6px;">FHI = 5.1 × OEF × PF × M<sub>f</sub></div>
+          <p style="font-size:12.2px"><b style="color:var(--ink)">OEF</b> — oksigen artımı, <b style="color:var(--ink)">PF</b> — təzyiq faktoru, <b style="color:var(--ink)">M<sub>f</sub></b> — material indeksi. Yuxarı sərhəd: <b style="color:var(--ink)">CFI-G (85% O₂)</b>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <img src="assets/shot_simulator.jpg" style="width: 100%; height: auto; object-fit: contain; background: #040812;" alt="FIRE-X Missiya Simulyatoru ekranı">
+      <div class="cap">
+        <span><b>Missiya Simulyatoru</b> · FHI İndeksi, dₑ Sönmə Diametri və Boğucu Qaz %</span>
+        <span class="cyan">PMMA / HEPTAN</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>06 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7: 06 · Sİ KÖMƏKÇİ & MƏNBƏ-KİLİDLİ SQL-RAG                         -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">06 · Sİ Köməkçi (SQL-RAG)</div>
+  <h2>Halüsinasiyasız Sİ: yalnız rəsmi PSI qeydlərinə əsaslanan qərar dəstəyi</h2>
+  <p class="lead">Sİ köməkçi ümumi yaddaşdan uydurma rəqəm çıxarmır — hər sorğu əvvəlcə canlı SQLite verilənlər bazasına müraciət edir və yalnız real sınaq qeydləri əsasında cavab verir.</p>
+
+  <div class="grid" style="grid-template-columns: 1.2fr 1fr; gap: 20px; margin-top: 14px; align-items: start;">
+    <div class="frame">
+      <img src="assets/shot_ai.jpg" style="width: 100%; height: auto; object-fit: contain; background: #040812;" alt="FIRE-X Sİ Köməkçi Konsolu">
+      <div class="cap">
+        <span><b>FIRE-X Sİ Konsolu</b> · GPT-4o-mini + Canlı SQLite SQL-RAG</span>
+        <span class="green">● SOURCE-LOCKED</span>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div class="card card-top-cyan" style="padding: 12px 15px;">
+        <div class="label" style="margin:0 0 7px">4 Mərhələli Retrieval Arxitekturası</div>
+        <div class="flow" style="flex-direction:column; align-items:stretch; gap:5px;">
+          <div class="node" style="padding:6px 10px"><b>1. İstifadəçi Sualı &amp; Səhifə Konteksti</b><span>Missiya mühiti, yanacaq və ya eksperiment ID-si</span></div>
+          <div class="node" style="padding:6px 10px"><b>2. Canlı SQLite SQL Sorğusu</b><span>569 sınaq içindən uyğun sətirlər dərhal çəkilir</span></div>
+          <div class="node" style="padding:6px 10px"><b>3. Mənbə Statusu Yoxlanışı</b><span>407 PSI ölçməsi vs 162 ⚠ illüstrativ sətir ayrılır</span></div>
+          <div class="node" style="padding:6px 10px"><b>4. GPT-4o-mini Elmi Sintezi</b><span>Konkret sınaq ID-ləri ilə əsaslandırılmış tövsiyə</span></div>
+        </div>
+      </div>
+
+      <div class="card card-top-amber" style="padding: 11px 15px;">
+        <h3 style="font-size:15px; margin-bottom:4px;">Elmi Dürüstlük Qoruyucusu</h3>
+        <p style="font-size:12.4px;">Verilənlər bazasında empirik data yoxdursa (məsələn, real Ay cazibəsi sınaqları), model təxmin uydurmur — açıq şəkildə <i>“kifayət qədər empirik data yoxdur”</i> deyir.</p>
+      </div>
+
+      <div class="card card-top-fire" style="padding: 11px 15px;">
+        <h3 style="font-size:15px; margin-bottom:4px;">Standartların Dəqiq Fərqi</h3>
+        <p style="font-size:12.4px;"><b style="color:var(--ink)">NASA-STD-6001:</b> material alışqanlığı və qaz buraxma. <b style="color:var(--ink)">NASA-STD-3001:</b> ekipaj sağlamlığı. <b style="color:var(--ink)">SQL-RAG</b> FIRE-X-in öz retrieval arxitekturasıdır.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>07 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8: 07 · FİZİKİ HARDWARE VƏ 3D SNAP-FİT KORPUS                      -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">07 · Fiziki Hardware və 3D Korpus</div>
+  <h2>Masada işləyən yanğın aşkarlama stansiyası və 3D Snap-Fit korpus</h2>
+  <p class="lead">NASA-nın “Aşkarlama” səviyyəsinin Yerdəki tam işlək modeli: üç fərqli fiziki sensor, aktiv akustik siren, iki tərəfli veb əlaqəsi və 100% yapışqansız 3D çap edilə bilən korpus.</p>
+
+  <div class="grid" style="grid-template-columns: 1.08fr 1fr; gap: 22px; margin-top: 16px; align-items: start;">
+    <div>
+      <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 11px;">
+        <div class="card card-top-cyan" style="padding: 13px 15px;">
+          <h3>ESP32 DevKit V1</h3>
+          <p>Wi-Fi HTTP server + <span style="font-family:'JetBrains Mono';font-size:12px;color:var(--cyan)">/data</span> JSON telemetriyası + USB Serial (115200 baud)</p>
+        </div>
+        <div class="card card-top-fire" style="padding: 13px 15px;">
+          <h3>MQ-2 · Tüstü / LPG</h3>
+          <p>GPIO 34 · ADC1 kanalı (Wi-Fi aktiv ikən fasiləsiz 12-bit oxunuş)</p>
+        </div>
+        <div class="card card-top-amber" style="padding: 13px 15px;">
+          <h3>MQ-4 · Metan (CH₄)</h3>
+          <p>GPIO 35 · ADC1 kanalı (təbii qaz və uçucu sızma detektoru)</p>
+        </div>
+        <div class="card card-top-green" style="padding: 13px 15px;">
+          <h3>IR Alov &amp; Buzzer</h3>
+          <p>IR: GPIO 25 (açıq alov) · Aktiv Buzzer: GPIO 23 (saytdan səsi aç/bağla)</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 12px; padding: 14px 18px;">
+        <div class="label" style="margin:0 0 8px">Yalançı Həyəcan Əleyhinə Mühəndislik &amp; 3D CAD</div>
+        <ul class="clean" style="margin:0">
+          <li><b style="color:var(--ink)">Avtomatik Fon Kalibrləməsi:</b> Açılışda otağın təmiz hava baza səviyyəsini ölçür — sabit rəqəmlə yox, real artımla işləyir.</li>
+          <li><b style="color:var(--ink)">Çoxmərhələli Süzgəc:</b> Siqnal hamarlaşdırması, təsdiq gecikməsi və histerezis ani küyləri bloklayır.</li>
+          <li><b style="color:var(--ink)">Ağıllı Akustik Siren:</b> Təhlükə anında 5 s çalır; risk davam edərsə hər 15 s-dən bir xatırlatma verir.</li>
+          <li><b style="color:var(--ink)">100% Yapışqansız 3D Korpus:</b> 0.4 mm dözümlülüklü Snap-Fit yuvalar və koaksial MQ qülləsi (.STL hazırdır).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="frame">
+        <img src="assets/hardware_hero.jpg" style="height: 214px; object-fit: cover; object-position: center 45%;" alt="Real masaüstü breadboard prototipi">
+        <div class="cap"><span><b>Real Fiziki Prototip</b> · 2× 400-pin Breadboard Montajı</span><span class="green">● İŞLƏK MASADA</span></div>
+      </div>
+      <div class="frame">
+        <img src="assets/enclosure_3d.jpg" style="height: 214px; object-fit: cover;" alt="FIRE-X 3D Snap-Fit Korpus CAD">
+        <div class="cap"><span><b>3D Modulyar Korpus</b> · Snap-Fit Qapaq + Akustik Louverlər</span><span class="cyan">3× .STL HAZIR</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>08 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9: 08 · CANLI NÜMAYİŞ VƏ NASA SPİNOFF                              -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">08 · Canlı Nümayiş və NASA Spinoff</div>
+  <h2>Sensor qazı hiss edir — dashboard 2 saniyədə reaksiya verir</h2>
+
+  <div class="grid" style="grid-template-columns: 1.28fr 1fr; gap: 22px; margin-top: 16px; align-items: start;">
+    <div>
+      <div class="frame">
+        <img src="assets/dashboard_live.jpg" style="height: 365px; object-fit: cover; object-position: top;" alt="Canlı Hardware dashboard: MQ-2 848, təhlükə">
+        <div class="cap">
+          <span><b>Canlı Telemetriya Masası</b> · MQ-2: 848 · MQ-4: 1118 · FHI: 10.0 / 10.0</span>
+          <span class="accent">▲ KRİTİK TƏHLÜKƏ</span>
+        </div>
+      </div>
+
+      <div class="flow" style="margin-top: 12px;">
+        <div class="node"><b>1. Sensorlar</b><span>MQ-2 · MQ-4 · IR</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>2. ESP32 Server</b><span>192.168.137.120</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>3. FastAPI</b><span>FHI + 30 paket</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>4. Dashboard</b><span>Həyəcan + Sİ</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:11px;">
+      <div class="frame">
+        <img src="assets/serial_monitor_proof.png" style="height: 152px; object-fit: cover; object-position: left center;" alt="Arduino IDE Serial Monitor canlı çıxış sübutu">
+        <div class="cap"><span><b>USB Serial Sübutu:</b> Dashboard ilə 1:1 eyni rəqəmlər</span><span class="green">115200 BAUD</span></div>
+      </div>
+
+      <div class="card card-top-cyan" style="padding: 12px 15px;">
+        <div class="label" style="margin:0 0 4px">Challenge ilə Birbaşa Əlaqə</div>
+        <p><b style="color:var(--ink)">SAME &amp; SAME-R Aşkarlama:</b> Challenge tüstü aşkarlamasının əsas orbital sınaqları kimi SAME / SAME-R-i göstərir — stansiyamız çox-sensorlu qaz + optik alov aşkarlamasını Yerdə reallaşdırır.</p>
+      </div>
+
+      <div class="card card-top-fire" style="padding: 12px 15px;">
+        <div class="label" style="margin:0 0 4px">Yerdəki Tətbiq · NASA Spinoff</div>
+        <p><b style="color:var(--ink)">Fire Detector Spinoff (node/9407):</b> NASA tüstünü tozdan fərqləndirərək yalançı həyəcanı azaldan texnologiyanı nümunə gətirir — fon kalibrləməsi və histerezisimiz eyni məqsədə xidmət edir.</p>
+      </div>
+
+      <div class="card" style="padding: 11px 15px;">
+        <p><b style="color:var(--ink)">Canlı Sübut:</b> Saytdakı “Buzzer Test” / səssiz rejim masadakı sireni idarə edir; kabel və ya Wi-Fi kəsiləndə dashboard 10 s-də gözləmə rejiminə qayıdır (0 uydurma rəqəm).</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>09 / 10</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10: 09 · NƏTİCƏ VƏ CHALLENGE UYĞUNLUQ MATRİSİ                     -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="slide">
+  <div class="kicker">09 · Nəticə və Yol Xəritəsi</div>
+  <h2>Challenge məqsədləri və FIRE-X-in tam cavabı</h2>
+
+  <div class="grid" style="grid-template-columns: 1.42fr 1fr; gap: 22px; margin-top: 18px; align-items: start;">
+    <div class="card" style="padding: 12px 18px;">
+      <table class="t" style="font-size: 13px;">
+        <tr><th>NASA Challenge Tələbi</th><th>FIRE-X Həllində Tətbiqi</th><th></th></tr>
+        <tr><td>Ekipaj mühitləri üçün ən uyğun tədqiqatları tapmaq</td><td>6 mühit üzrə Sİ tədqiqat reytinqi + FHI</td><td class="ok">✓</td></tr>
+        <tr><td>Proqnoz modelləşdirmə üçün data çıxarmaq</td><td>Çoxölçülü filtr + müqayisə + mənbə etiketli CSV</td><td class="ok">✓</td></tr>
+        <tr><td>Növbəti nəsil avadanlığa təsir edən tədqiqatlar</td><td>3 səviyyəli təsir matrisi (Prevent / Detect / Suppress)</td><td class="ok">✓</td></tr>
+        <tr><td>Oxşarlıq və fərqlər (qurğu, yanacaq, sensor)</td><td>Tədqiqatlararası avadanlıq matrisi (CIR, MSG, Cygnus)</td><td class="ok">✓</td></tr>
+        <tr><td>Qismən cazibə (LUCI, FM2 hələ yoxdur)</td><td>0g–1g sərhəd modeli + ACME E-FIELD aralıq nöqtəsi</td><td class="ok">✓</td></tr>
+        <tr><td>Yerdə yanğın təhlükəsizliyi tətbiqləri</td><td>NASA Spinoff-lar (node/9407) + canlı sensor stansiyası</td><td class="ok">✓</td></tr>
+        <tr><td>Raket yanacaqları — əhatədən kənar</td><td>Ekipaj kabin alışqanlığına fokuslanaraq açıq istisna edilib</td><td class="ok">✓</td></tr>
+      </table>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="frame">
+        <img src="assets/spacecraft_render.jpg" style="height: 158px; object-fit: cover; object-position: center;" alt="Artemis / Orbital Tədqiqat Missiyası">
+        <div class="cap"><span><b>Sonrakı Addımlar</b> · Artemis &amp; ISS Yol Xəritəsi</span><span class="cyan">v2 → v3</span></div>
+      </div>
+
+      <div class="card card-top-cyan" style="padding: 13px 16px;">
+        <div class="label" style="margin:0 0 8px">Gələcək İnkişaf Planı</div>
+        <ul class="clean" style="margin:0">
+          <li>162 illüstrativ qeydi PSI-nin rəsmi ACME, SAME və SPICE cədvəlləri ilə tam əvəz etmək</li>
+          <li>LUCI və FM2 datası dərc olunan kimi 0g–1g qismən cazibə modelini kalibrləmək</li>
+          <li>Sensor stansiyasına real O₂ və temperatur modulu əlavə edib FHI-ni tam fiziki hesablamaq</li>
+        </ul>
+      </div>
+
+      <div class="card card-top-fire" style="display:flex; align-items:center; gap:14px; padding: 14px 16px;">
+        <img src="assets/logo_firex.jpg" style="width:52px; height:52px; border-radius:9px; border:1px solid var(--line); object-fit:cover;" alt="FIRE-X loqosu">
+        <div>
+          <div style="font-family:'Space Grotesk'; font-size:22px; font-weight:700; line-height:1;">FIRE<span class="accent">-X</span></div>
+          <div style="font-size:12.5px; color:#c8d0de; margin-top:4px; line-height:1.35;">Mürəkkəb datanı aydın cavablara çeviririk — növbəti nəhəng addımı daha təhlükəsiz etmək üçün.</div>
+          <div style="font-family:'JetBrains Mono'; font-size:10.5px; color:var(--cyan); margin-top:4px;">Team SpaceAz · NASA Space Apps Ganja 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>FIRE-X · Team SpaceAz</span><span>10 / 10</span></div>
+</section>
+
+</body>
+</html>
