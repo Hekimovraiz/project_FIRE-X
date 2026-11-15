@@ -1380,8 +1380,8 @@
     if (!d) return '';
     const parts = [];
     if (d.ir_flame_detected) parts.push(T('🔥 ALOV aşkarlandı', '🔥 FLAME detected'));
-    if ((d.raw_smoke_adc || 0) > 400) parts.push(`MQ-2 ${d.raw_smoke_adc}`);
-    if ((d.mq4_adc || 0) > 2200) parts.push(`MQ-4 ${d.mq4_adc}`);
+    if ((d.raw_smoke_adc || 0) > 1000) parts.push(`MQ-2 ${d.raw_smoke_adc}`);
+    if ((d.mq4_adc || 0) > 2500) parts.push(`MQ-4 ${d.mq4_adc}`);
     return parts.join(' · ');
   }
 
@@ -1408,7 +1408,8 @@
       if (!res.ok) return;
       const d = (await res.json()).data || {};
       lastData = d;
-      const hazard = !!(d.connected && !d.is_simulated && d.status === 'HAZARD_ALERT');
+      const hazard = !!(d.connected && (d.status === 'HAZARD_ALERT' || d.ir_flame_detected ||
+        d.hazard_level === 'ELEVATED' || d.hazard_level === 'CRITICAL'));
       if (hazard !== liveHazard) { liveHazard = hazard; update(); }
       else if (hazard) renderBanner();
     } catch (_) {}
@@ -1429,7 +1430,7 @@
   function init() {
     mount();
     // Only poll physical ESP32 sensor state automatically on local LAN/localhost to avoid serverless quota drain on cloud deployments
-    if (isLocalNetworkHost()) {
+    if (isLocalNetworkHost() || location.pathname.startsWith('/hardware')) {
       poll();
       setInterval(poll, POLL_MS);
     }
