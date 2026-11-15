@@ -13,7 +13,7 @@ const int buzzerPin = 23;       // Buzzer (GPIO 23)
 
 // ─── HƏSSASLIQ HƏDLƏRİ ──────────────────────────────────────────
 const int mq2Threshold = 1000;   
-const int mq4Threshold = 3500;  
+const int mq4Threshold = 2500;  
 
 bool soundEnabled = true; 
 unsigned long lastSerialPrint = 0;
