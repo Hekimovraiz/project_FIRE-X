@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use FIRE-X in your work, please cite it as below."
+title: "FIRE-X: Microgravity Combustion Intelligence for Spacecraft Fire Safety"
+abstract: >-
+  An open platform built for the NASA Space Apps Challenge 2026 (Flame in Freefall)
+  that unifies NASA microgravity combustion records (FLEX, BASS-II, SAFFIRE and related
+  investigations) into a provenance-labelled database, adds a SQL-grounded AI assistant,
+  a mission fire-hazard simulator for spacecraft and planetary habitats, and an ESP32
+  gas and flame sensor node.
+type: software
+authors:
+  - given-names: Murad
+    family-names: Fatullazada
+  - given-names: Sabir
+    family-names: Məmmədzadə
+  - given-names: Raiz
+    family-names: Həkimov
+  - given-names: Şahvələd
+    family-names: Vəlizadə
+  - given-names: Hüseyn
+    family-names: Alırzayev
+repository-code: "https://github.com/Hekimovraiz/project_FIRE-X"
+url: "https://fire-x.onrender.com/"
+license: MIT
+version: 2.2.0
+date-released: 2026-11-15
+keywords:
+  - microgravity combustion
+  - spacecraft fire safety
+  - NASA PSI
+  - NASA Space Apps
+  - ESP32
+  - retrieval-augmented generation

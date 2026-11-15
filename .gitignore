@@ -36,3 +36,6 @@ Thumbs.db
 
 # ESP32 Wi-Fi credentials
 hardware/**/secrets.h
+
+# Test cache
+.pytest_cache/
