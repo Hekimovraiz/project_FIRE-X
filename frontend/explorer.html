@@ -869,8 +869,14 @@ async function inspectExperiment(id) {
 
   try {
     const res = await fetch(`/api/experiments/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      throw new Error(`Experiment ${id} not found (${res.status})`);
+    }
     const json = await res.json();
     const exp = json.data || json;
+    if (!exp || !exp.experiment_id) {
+      throw new Error(`Invalid experiment payload for ${id}`);
+    }
 
     const isAz = (localStorage.getItem('firex_lang') === 'az');
     const co2Str = (exp.co2_pct != null && exp.co2_pct > 0) ? `${exp.co2_pct.toFixed(1)}% CO₂` : '0% CO₂';
@@ -966,11 +972,32 @@ function runComparisonBenchmark() {
 }
 
 function exportCSV() {
+  const query = document.getElementById('filter-search').value.trim();
+  const family = document.getElementById('filter-family').value;
+  const fuel = document.getElementById('filter-fuel').value;
+  const outcome = document.getElementById('filter-outcome').value;
+  const minO2 = document.getElementById('slider-o2-min').value;
   const provenance = document.getElementById('filter-provenance').value;
-  window.open('/api/experiments/export.csv' + (provenance ? `?provenance=${provenance}` : ''), '_blank');
+
+  const params = new URLSearchParams();
+  if (query) params.set('query', query);
+  if (family) params.set('family', family);
+  if (fuel) params.set('fuel', fuel);
+  if (outcome) params.set('outcome', outcome);
+  if (minO2 && Number(minO2) > 12) params.set('min_o2', minO2);
+  if (provenance) params.set('provenance', provenance);
+
+  const qs = params.toString();
+  window.open('/api/experiments/export.csv' + (qs ? `?${qs}` : ''), '_blank');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialSearch = urlParams.get('search') || urlParams.get('query');
+  if (initialSearch) {
+    const searchEl = document.getElementById('filter-search');
+    if (searchEl) searchEl.value = initialSearch;
+  }
   fetchExperiments();
 });
 </script>

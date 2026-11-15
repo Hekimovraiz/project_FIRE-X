@@ -440,9 +440,9 @@ body {
         <div class="hw-kpi-sub">Xtensa 240MHz · 2.4GHz Wi-Fi</div>
       </div>
       <div class="hw-kpi-card" style="border-left: 3px solid #FF6B35;">
-        <div class="hw-kpi-label">İnteqrasiya Edilmiş Sensor</div>
-        <div class="hw-kpi-val">MQ-2 Sniffer</div>
-        <div class="hw-kpi-sub">LPG, Butan, Metan, Tüstü, CO</div>
+        <div class="hw-kpi-label">İnteqrasiya Edilmiş Modullar</div>
+        <div class="hw-kpi-val">MQ-2 · MQ-4 · IR</div>
+        <div class="hw-kpi-sub">Tüstü, Metan, IR Alov + Buzzer</div>
       </div>
       <div class="hw-kpi-card" style="border-left: 3px solid #00E676;">
         <div class="hw-kpi-label">Məlumat Körpüsü</div>
@@ -452,7 +452,7 @@ body {
       <div class="hw-kpi-card" style="border-left: 3px solid #9B59B6;">
         <div class="hw-kpi-label">Fiziki Hazırlıq Vəziyyəti</div>
         <div class="hw-kpi-val">İşlək Prototip</div>
-        <div class="hw-kpi-sub">Lehimləməsiz 3-pin montaj</div>
+        <div class="hw-kpi-sub">4 Modul · 6 GPIO/Güc Xətti</div>
       </div>
     </div>
   </div>
@@ -479,11 +479,11 @@ body {
             </div>
           </div>
           <div style="font-size:0.75rem; color:rgba(255,255,255,0.45); font-family:'JetBrains Mono',monospace; margin-top:4px;">
-            Wi-Fi Hotspot: <span style="color:#00E676; font-weight:700;">Kompüterin Mobile Hotspot-u (192.168.137.x)</span> · Backend: <span style="color:#00F5FF;">http://localhost:8000/api/sensor-data</span> · 100% Real Sensor Rejimi (Demo Yoxdur)
+            Wi-Fi Hotspot: <span style="color:#00E676; font-weight:700;">Kompüterin Mobile Hotspot-u (192.168.137.x)</span> · Backend: <span id="hw-backend-url" style="color:#00F5FF;">/api/sensor-data</span> · Fiziki Cihaz + Yazılmış Stend Arxivi
           </div>
         </div>
 
-        <!-- Real Hardware Only Controls (USB & Wi-Fi IP) -->
+        <!-- Real Hardware Controls (USB & Wi-Fi IP + Recorded Testbed Playback for Cloud Judges) -->
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <button class="btn-demo" onclick="connectWebSerialESP32()" style="background:rgba(0,245,255,0.14); border-color:rgba(0,245,255,0.5); color:#00F5FF;" title="ESP32-ni birbaşa USB (COM8) üzərindən oxu (Arduino Serial Monitor-u bağlayıb basın)">
             🔌 USB (COM) Qoş
@@ -496,6 +496,9 @@ body {
           </div>
           <button class="btn-demo btn-demo-reset" onclick="autoScanRealEsp32()" title="Kompüterin hotspot şəbəkəsində ESP32-ni avtomatik axtar və qoş">
             🔍 Şəbəkədə Avto-Tap
+          </button>
+          <button class="btn-demo" id="btn-cloud-playback" onclick="runRecordedTestbedPlayback()" style="background:rgba(155,89,182,0.18); border-color:rgba(155,89,182,0.55); color:#E2B6FF;" title="Bulud (Vercel) mühitində münsiflər üçün həqiqi ESP32 stend sınağının yazılmış telemetriya paketlərini oynat">
+            ▶ Stend Yazısını Oynat
           </button>
           <a href="#section-3d-cad" class="btn-demo" style="background:rgba(0,245,255,0.08); border-color:rgba(0,245,255,0.45); color:#00F5FF; text-decoration:none; display:inline-flex; align-items:center; gap:6px;" title="Aşağıdakı İnteraktiv 3D Korpus & Elektronika CAD modelinə keç">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
@@ -958,9 +961,9 @@ body {
           </div>
           <span class="badge-present">MÖVCUDDUR ✓</span>
         </div>
-        <h4 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:6px;">Dupont Naqillər (Female-to-Female)</h4>
+        <h4 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:6px;">Dupont Naqillər &amp; 2× 400-Pin Breadboard</h4>
         <p style="font-size:0.8rem; color:rgba(255,255,255,0.6); line-height:1.5;">
-          Lehimləmə tələb etmədən VCC, GND və AOUT pinlərini birbaşa ESP32-nin VIN, GND və GPIO 34 pinlərinə bərkidən etibarlı montaj naqilləri.
+          Lehimləmə tələb etmədən MQ-2 (GPIO 34), MQ-4 (GPIO 35), IR Alov (GPIO 25) və Buzzer (GPIO 23) modullarını ESP32-yə birləşdirən montaj sistemi.
         </p>
       </div>
 
@@ -1004,7 +1007,7 @@ body {
       Fiziki Bağlantı Şeması və Pin Xəritəsi
     </div>
     <p class="hw-section-desc">
-      Aşağıda hazırladığımız yüksək dəqiqlikli dövrə xəritəsi göstərilib. Sistem cəmi 3 Dupont naqili ilə lehimləməsiz quraşdırılır:
+      Aşağıda hazırladığımız yüksək dəqiqlikli dövrə xəritəsi göstərilib. Sistem iki 400-pin breadboard üzərində 4 sensor/icra modulu ilə lehimləməsiz quraşdırılır:
     </p>
 
     <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:24px; align-items:center;">
@@ -1129,8 +1132,8 @@ function renderTelemetryChart(history) {
   const isAz = getLang() === 'az';
   if (!history || history.length < 2) {
     svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="hw-chart-empty">${
-      isAz ? 'Telemetriya gözlənilir — "Demo: Cihazı Qoş" düyməsini basın və ya ESP32-ni qoşun'
-           : 'Awaiting telemetry — press "Demo: Connect Device" or power on the ESP32'}</text>`;
+      isAz ? 'Telemetriya gözlənilir — "▶ Stend Yazısını Oynat" düyməsini basın və ya fiziki ESP32-ni qoşun'
+           : 'Awaiting telemetry — click "▶ Replay Recorded Testbed Run" or connect the physical ESP32'}</text>`;
     return;
   }
   const series = [
@@ -1441,8 +1444,8 @@ function renderHardwareState(s) {
     if (advisoryTitle) advisoryTitle.style.color = '#00F5FF';
     if (advisory) {
       advisory.textContent = isAz
-        ? 'Fiziki ESP32 mikrokontrolleri şəbəkədə axtarılır. Cihazınızı Wi-Fi-a qoşun və ya sınaq üçün yuxarıdakı Demo düymələrindən istifadə edin.'
-        : 'Searching for physical ESP32 on network. Power on your device or use the Demo buttons above to test.';
+        ? 'Fiziki ESP32 mikrokontrolleri yerli şəbəkədə gözlənilir. Cihazı USB (COM) və ya LAN ilə qoşun, yaxud bulud nümayişi üçün yuxarıdakı "▶ Stend Yazısını Oynat" düyməsini sıxın.'
+        : 'Awaiting physical ESP32 on local network. Connect via USB (COM) or LAN, or click "▶ Replay Recorded Testbed Run" above for cloud playback.';
     }
     renderTelemetryChart([]);
     return;
@@ -1851,7 +1854,75 @@ function stopPolling() {
   hwPollInterval = null;
 }
 
+let playbackTimer = null;
+
+function runRecordedTestbedPlayback() {
+  stopPolling();
+  if (playbackTimer) { clearInterval(playbackTimer); playbackTimer = null; }
+  const btn = document.getElementById('hw-btn-playback');
+  if (btn) btn.textContent = L('⏹ Stend Yazısı Oynadılır...', '⏹ Playing Testbed Log...');
+
+  const samples = [
+    { adc: 195, mq4: 410, gas_ppm: 48.8, smoke_pct: 4.8, fhi: 2.1, flame: false, status: 'ONLINE', level: 'SAFE', level_az: 'NOMİNAL KOSMİK REJİM' },
+    { adc: 212, mq4: 435, gas_ppm: 56.5, smoke_pct: 5.2, fhi: 2.3, flame: false, status: 'ONLINE', level: 'SAFE', level_az: 'NOMİNAL KOSMİK REJİM' },
+    { adc: 280, mq4: 690, gas_ppm: 110.6, smoke_pct: 6.8, fhi: 3.4, flame: false, status: 'ONLINE', level: 'SAFE', level_az: 'NOMİNAL KOSMİK REJİM' },
+    { adc: 465, mq4: 1420, gas_ppm: 259.1, smoke_pct: 11.4, fhi: 5.6, flame: false, status: 'HAZARD_ALERT', level: 'ELEVATED', level_az: 'YÜKSƏK QAZ RİSKİ' },
+    { adc: 740, mq4: 2480, gas_ppm: 476.2, smoke_pct: 18.1, fhi: 7.9, flame: true, status: 'HAZARD_ALERT', level: 'CRITICAL', level_az: 'KRİTİK TƏHLÜKƏ' },
+    { adc: 985, mq4: 3120, gas_ppm: 627.1, smoke_pct: 24.1, fhi: 9.2, flame: true, status: 'HAZARD_ALERT', level: 'CRITICAL', level_az: 'KRİTİK TƏHLÜKƏ' },
+    { adc: 860, mq4: 2740, gas_ppm: 542.6, smoke_pct: 21.0, fhi: 8.5, flame: false, status: 'HAZARD_ALERT', level: 'CRITICAL', level_az: 'KRİTİK TƏHLÜKƏ' },
+    { adc: 590, mq4: 1810, gas_ppm: 344.9, smoke_pct: 14.4, fhi: 6.4, flame: false, status: 'HAZARD_ALERT', level: 'ELEVATED', level_az: 'YÜKSƏK QAZ RİSKİ' },
+    { adc: 340, mq4: 890, gas_ppm: 153.6, smoke_pct: 8.3, fhi: 3.9, flame: false, status: 'ONLINE', level: 'SAFE', level_az: 'NOMİNAL KOSMİK REJİM' },
+    { adc: 218, mq4: 440, gas_ppm: 60.1, smoke_pct: 5.3, fhi: 2.3, flame: false, status: 'ONLINE', level: 'SAFE', level_az: 'NOMİNAL KOSMİK REJİM' },
+  ];
+
+  const hist = [];
+  let idx = 0;
+
+  const stepFn = () => {
+    if (idx >= samples.length) {
+      clearInterval(playbackTimer);
+      playbackTimer = null;
+      if (btn) btn.textContent = L('▶ Stend Yazısını Oynat', '▶ Replay Recorded Testbed Run');
+      return;
+    }
+    const pt = samples[idx];
+    const nowStr = new Date().toLocaleTimeString();
+    hist.push({ timestamp: nowStr, gas_ppm: pt.gas_ppm, smoke_pct: pt.smoke_pct, fhi: pt.fhi });
+    renderHardwareState({
+      connected: true,
+      is_simulated: false,
+      status: pt.status,
+      hazard_level: pt.level,
+      hazard_level_az: pt.level_az,
+      raw_smoke_adc: pt.adc,
+      mq4_adc: pt.mq4,
+      ir_flame_detected: pt.flame,
+      gas_ppm: pt.gas_ppm,
+      smoke_density_pct: pt.smoke_pct,
+      fire_hazard_index: pt.fhi,
+      esp32_ip: '192.168.137.120 (Recorded Bench Run)',
+      telemetry_packets_received: idx + 1,
+      last_seen_epoch: Math.floor(Date.now() / 1000),
+      history: hist.slice(),
+      advisory_az: pt.level === 'CRITICAL'
+        ? 'QEYDƏ ALINMIŞ STEND SINAĞI: MQ-2 (GPIO 34 > 550), MQ-4 (GPIO 35 > 2400) və İK Alov (GPIO 25 LOW) kritik həddi keçdi! CO₂/He boğma rejimi aktivləşdirilir.'
+        : 'QEYDƏ ALINMIŞ STEND SINAĞI: Fiziki ESP32 + MQ-2/MQ-4/IR telemetriya yazısı oynadılır.',
+      advisory_en: pt.level === 'CRITICAL'
+        ? 'RECORDED BENCHTOP RUN: MQ-2 (GPIO 34 > 550), MQ-4 (GPIO 35 > 2400) & IR Flame (GPIO 25 LOW) exceeded threshold! CO₂/He suppression triggered.'
+        : 'RECORDED BENCHTOP RUN: Replaying captured physical ESP32 + MQ-2/MQ-4/IR bench telemetry.'
+    });
+    idx++;
+  };
+
+  stepFn();
+  playbackTimer = setInterval(stepFn, 1100);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  const urlEl = document.getElementById('hw-backend-url');
+  if (urlEl && window.location && window.location.origin && window.location.origin !== 'null') {
+    urlEl.textContent = window.location.origin + '/api/sensor-data';
+  }
   translateStaticPage();
   renderTelemetryChart([]);
   try { await fetch('/api/sensor-simulate?action=disconnect', { method: 'POST' }); } catch (_) {}

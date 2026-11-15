@@ -97,12 +97,13 @@ class TelemetryNodeBridgeRequest(BaseModel):
 # API Routes
 @app.get('/api/health')
 def health_check():
+    st = get_stats(lite=True)
     return {
         'status': 'healthy',
         'service': 'FIRE-X Space Science API',
         'version': '2.2.0',
-        'canonical_records': get_stats()['total_experiments'],
-        'psi_verified_records': get_stats()['psi_verified_experiments'],
+        'canonical_records': st['total_experiments'],
+        'psi_verified_records': st['psi_verified_experiments'],
         'disclaimer': 'FIRE-X Decision Support System — Empirical Analytics & Reference Tool (Non-Autonomic)'
     }
 
@@ -161,9 +162,9 @@ def telemetry_node_bridge_api(req: TelemetryNodeBridgeRequest):
 
 
 @app.get('/api/stats')
-def get_platform_stats():
+def get_platform_stats(lite: bool = Query(False)):
     try:
-        return {'success': True, 'data': get_stats()}
+        return {'success': True, 'data': get_stats(lite=lite)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -182,26 +183,41 @@ def get_experiments(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get('/api/experiments/export.csv')
-def export_experiments_csv(provenance: Optional[str] = Query(None, description="psi_verified | illustrative")):
-    """Full dataset as CSV for predictive modelling — every row carries its data_provenance label."""
+def export_experiments_csv(
+    query: Optional[str] = Query(None),
+    family: Optional[str] = Query(None),
+    fuel: Optional[str] = Query(None),
+    outcome: Optional[str] = Query(None),
+    min_o2: Optional[float] = Query(None),
+    max_o2: Optional[float] = Query(None),
+    provenance: Optional[str] = Query(None, description="psi_verified | illustrative")
+):
+    """Dataset export as CSV for predictive modelling — respects all active Explorer filters and carries data_provenance."""
     import csv, io
     from fastapi.responses import Response
-    data = query_experiments(page=1, limit=100000, provenance=provenance)
+    data = query_experiments(
+        query=query, family=family, fuel=fuel, outcome=outcome,
+        min_o2=min_o2, max_o2=max_o2, page=1, limit=100000, provenance=provenance
+    )
     rows = data["experiments"]
     buf = io.StringIO()
     if rows:
-        cols = ["experiment_id", "dataset_family", "data_provenance", "provenance_source"] +                [c for c in rows[0].keys() if c not in ("experiment_id", "dataset_family", "data_provenance", "provenance_source")]
+        cols = ["experiment_id", "dataset_family", "data_provenance", "provenance_source"] + [
+            c for c in rows[0].keys() if c not in ("experiment_id", "dataset_family", "data_provenance", "provenance_source")
+        ]
         w = csv.DictWriter(buf, fieldnames=cols)
         w.writeheader()
         w.writerows(rows)
     name = f"firex_experiments_{provenance or 'all'}.csv"
-    return Response(content="﻿" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+    return Response(content="\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
-@app.get('/api/experiments/{experiment_id}')
+@app.get('/api/experiments/{experiment_id:path}')
 def get_single_experiment(experiment_id: str):
     try:
         exp = get_experiment_by_id(experiment_id)
+        if not exp and "/" in experiment_id:
+            exp = get_experiment_by_id(experiment_id.replace("/", "-"))
         if not exp: raise HTTPException(status_code=404, detail='Experiment not found')
         return {'success': True, 'data': exp}
     except HTTPException: raise
@@ -215,23 +231,64 @@ def compare_selected_experiments(req: CompareRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get('/api/mission-scenario/{scenario_id}')
-def get_scenario_metrics(scenario_id: str, custom_o2: Optional[float] = Query(None), custom_pressure: Optional[float] = Query(None)):
+def get_scenario_metrics(
+    scenario_id: str,
+    custom_o2: Optional[float] = Query(None),
+    custom_pressure: Optional[float] = Query(None),
+    custom_gravity: Optional[float] = Query(None),
+    material_factor: Optional[float] = Query(None),
+):
     try:
-        return {'success': True, 'data': calculate_mission_scenario(scenario_id, custom_o2=custom_o2, custom_pressure=custom_pressure)}
+        return {
+            'success': True,
+            'data': calculate_mission_scenario(
+                scenario_id,
+                custom_o2=custom_o2,
+                custom_pressure=custom_pressure,
+                custom_gravity=custom_gravity,
+                material_factor=material_factor,
+            )
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get('/api/investigation-rankings')
-def get_rankings_default(environment: str = Query('lunar_habitat')):
+def get_rankings_default(
+    environment: str = Query('lunar_habitat'),
+    custom_o2: Optional[float] = Query(None),
+    custom_pressure: Optional[float] = Query(None),
+    custom_gravity: Optional[float] = Query(None),
+):
     try:
-        return {'success': True, 'data': get_investigation_rankings(environment)}
+        return {
+            'success': True,
+            'data': get_investigation_rankings(
+                environment,
+                custom_o2=custom_o2,
+                custom_pressure=custom_pressure,
+                custom_gravity=custom_gravity,
+            )
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get('/api/investigation-rankings/{environment_id}')
-def get_rankings_by_env(environment_id: str):
+def get_rankings_by_env(
+    environment_id: str,
+    custom_o2: Optional[float] = Query(None),
+    custom_pressure: Optional[float] = Query(None),
+    custom_gravity: Optional[float] = Query(None),
+):
     try:
-        return {'success': True, 'data': get_investigation_rankings(environment_id)}
+        return {
+            'success': True,
+            'data': get_investigation_rankings(
+                environment_id,
+                custom_o2=custom_o2,
+                custom_pressure=custom_pressure,
+                custom_gravity=custom_gravity,
+            )
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -817,8 +874,30 @@ if not IS_CLOUD_ENV:
 
 @app.post('/api/sensor-set-ip')
 def set_esp32_target_ip(ip: str = Query(...)):
-    """Set the ESP32 IP address (e.g. from Redmi Note 14S hotspot) and immediately poll it."""
-    clean_ip = ip.strip().replace("http://", "").replace("https://", "").split("/")[0]
+    """Set the ESP32 IP address (strictly RFC1918 private LAN IPv4 only to prevent SSRF) and immediately poll it."""
+    import ipaddress
+    raw_host = ip.strip().replace("http://", "").replace("https://", "").split("/")[0].split(":")[0].strip()
+    try:
+        addr = ipaddress.ip_address(raw_host)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid ESP32 IP format. Please enter a valid private LAN IPv4 address (e.g., 192.168.137.120)."
+        )
+    if (
+        addr.version != 4
+        or not addr.is_private
+        or addr.is_loopback
+        or addr.is_link_local
+        or addr.is_multicast
+        or addr.is_unspecified
+        or addr.is_reserved
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Security policy: Only RFC1918 private LAN IPv4 addresses (192.168.x.x, 10.x.x.x, 172.16-31.x.x) are permitted for ESP32 hardware polling."
+        )
+    clean_ip = str(addr)
     LATEST_SENSOR_STATE["esp32_ip"] = clean_ip
     ok = poll_esp32_static_ip(clean_ip)
     return {"success": ok, "esp32_ip": clean_ip, "data": LATEST_SENSOR_STATE}
@@ -990,6 +1069,8 @@ def simulator(): return serve_page('simulator.html')
 @app.get('/hardware')
 def hardware_page(): return serve_page('hardware.html')
 
+@app.get('/3d_viewer')
+@app.get('/3d_viewer.html')
 @app.get('/hardware/3d-viewer')
 @app.get('/hardware/3d_viewer.html')
 def serve_hardware_3d_viewer():
@@ -997,6 +1078,14 @@ def serve_hardware_3d_viewer():
     if os.path.exists(fpath):
         return FileResponse(fpath, media_type='text/html', headers={'Cache-Control': 'no-cache, no-store, must-revalidate', 'Content-Disposition': 'inline'})
     raise HTTPException(status_code=404, detail='3D Viewer not found')
+
+@app.get('/locales/{filename}')
+def serve_locale_file(filename: str):
+    safe_name = os.path.basename(filename)
+    loc_path = os.path.join(FRONTEND_DIR, 'locales', safe_name)
+    if os.path.exists(loc_path):
+        return FileResponse(loc_path, media_type='application/json')
+    return JSONResponse({'status': 'inline_i18n', 'locale': safe_name.replace('.json', '')})
 
 @app.get('/hardware/{filename}')
 def hardware_file_download(filename: str):

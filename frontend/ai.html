@@ -551,7 +551,7 @@ let messageHistory = [];
 let liveExpCount = 569;
 let liveFamCount = 18;
 
-fetch('/api/stats')
+fetch('/api/stats?lite=1')
   .then(r => r.json())
   .then(json => {
     const d = json.data || json;
@@ -590,9 +590,9 @@ function syncAiPageLanguage(lang) {
       <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--neon-cyan);margin-bottom:8px;">
         FIRE-X Elmi Tədqiqat Köməkçisi Onlayndır
       </div>
-      NASA Mikroyerçəkim Yanma İntellekt Konsoluna xoş gəlmisiniz. <strong>OpenAI GPT-4o-mini + Canlı SQLite SQL-RAG</strong> ilə təchiz olunub və ${liveFamCount} tədqiqat ailəsi üzrə <strong>${liveExpCount} yoxlanılmış uçuş və yerüstü sərhəd eksperimentinə</strong> əsaslanır.
+      NASA Mikroyerçəkim Yanma İntellekt Konsoluna xoş gəlmisiniz. <strong>OpenAI GPT-4o-mini + Canlı SQLite SQL-RAG</strong> ilə təchiz olunub və ${liveFamCount} tədqiqat ailəsi üzrə <strong>${liveExpCount} kanonik qeydə (407 rəsmi NASA PSI cədvəl ölçməsi + 162 açıq işarələnmiş illüstrativ qeyd)</strong> əsaslanır.
       <br><br>
-      SI Tədqiqat Uyğunluq Reytinqi (Kosmik Gəmi, BKS, Ay Bazası, Mars Bazası, Rover, EVA Skafandrı), 0g–1g Qismən Qravitasiya Sərhədləməsi (ACME E-FIELD / LUCI &amp; FM2), FLEX He/CO₂ qazları, ACME CFI-G (85% O₂) və ya 3 Səviyyəli Yanğın Təhlükəsizliyi Avadanlığı haqqında ətraflı suallar verə bilərsiniz.
+      SI Tədqiqat Uyğunluq Reytinqi (Kosmik Gəmi, BKS, Ay Bazası, Mars Bazası, Rover, EVA Skafandrı), 0g–1g Qismən Qravitasiya Sərhədləməsi (ACME E-FIELD / LUCI &amp; FM2), FLEX He/CO₂ qazları, ACME CFI-G (85% O₂), Artemis II tüstü siqnalı hadisəsi və ya 3 Səviyyəli Yanğın Təhlükəsizliyi Avadanlığı haqqında suallar verə bilərsiniz.
       <div class="msg-meta-bar">
         <span>NASA FİZİKİ ELMLƏR İNFORMATİKASI // CANLI SQL-RAG GROUND TRUTH</span>
         <span>SİSTEM HAZIRDIR</span>
@@ -601,9 +601,9 @@ function syncAiPageLanguage(lang) {
       <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--neon-cyan);margin-bottom:8px;">
         FIRE-X Scientific Research Assistant Online
       </div>
-      Welcome to the NASA Microgravity Combustion Intelligence Console. Powered by <strong>OpenAI GPT-4o-mini + Live SQLite SQL-RAG</strong> and grounded in <strong>${liveExpCount} verified flight &amp; ground-bound experiments</strong> across ${liveFamCount} investigation suites (CIR, MSG, Cygnus, ZGF, WSTF).
+      Welcome to the NASA Microgravity Combustion Intelligence Console. Powered by <strong>OpenAI GPT-4o-mini + Live SQLite SQL-RAG</strong> and grounded in <strong>${liveExpCount} canonical records (407 row-level NASA PSI measurements + 162 clearly labelled illustrative values)</strong> across ${liveFamCount} investigation suites (ISS CIR, ISS MSG, Cygnus).
       <br><br>
-      Ask about SI Investigation Relevance Rankings (Spacecraft, ISS, Lunar Base, Martian Base, Rover, EVA Suit), 0g–1g Partial-Gravity Bounding (ACME E-FIELD / pre-LUCI &amp; FM2), FLEX He/CO₂ diluents, ACME CFI-G 85% O₂ flames, or 3-Tier Fire Safety Equipment (Prevention, Detection, Suppression).
+      Ask about SI Investigation Relevance Rankings (Spacecraft, ISS, Lunar Base, Martian Base, Rover, EVA Suit), 0g–1g Partial-Gravity Bounding (ACME E-FIELD / pre-LUCI &amp; FM2), FLEX He/CO₂ diluents, ACME CFI-G 85% O₂ flames, Artemis II smoke alarm lessons, or 3-Tier Fire Safety Equipment (Prevention, Detection, Suppression).
       <div class="msg-meta-bar">
         <span>NASA PHYSICAL SCIENCE INFORMATICS // LIVE SQL-RAG GROUND TRUTH</span>
         <span>SYSTEM READY</span>
@@ -675,7 +675,7 @@ async function sendMessage() {
         page_context: {
           platform: 'NASA FIRE-X',
           facility: 'ISS CIR / MSG / Cygnus / ZGF / WSTF',
-          canonical_records: 892
+          canonical_records: liveExpCount || 569
         }
       })
     });
@@ -738,22 +738,140 @@ function appendMessage(role, text, provider) {
   scrollChatToBottom();
 }
 
+function formatInlineMarkdown(line) {
+  let s = line;
+  // Inline code
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Clean inline LaTeX math $...$ into readable HTML sub/sup
+  s = s.replace(/\$([^$]+)\$/g, (_, mathExpr) => {
+    return '<span style="font-family:\'JetBrains Mono\',monospace;color:#00F5FF;">' +
+      mathExpr
+        .replace(/\\times/g, '×')
+        .replace(/\\approx/g, '≈')
+        .replace(/\\le/g, '≤')
+        .replace(/\\ge/g, '≥')
+        .replace(/\\propto/g, '∝')
+        .replace(/\\mu/g, 'µ')
+        .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
+        .replace(/\^([0-9a-zA-Z+-]+)/g, '<sup>$1</sup>')
+        .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
+        .replace(/_([0-9a-zA-Z]+)/g, '<sub>$1</sub>') +
+      '</span>';
+  });
+  // Markdown links [text](url)
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:#00F5FF;text-decoration:underline;">$1</a>');
+  // Bold & Italic
+  s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  return s;
+}
+
 function formatMarkdown(md) {
-  let s = md
+  const escaped = (md || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // Bold
-  s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  // Italic
-  s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  // Inline Code
-  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // Newlines
-  s = s.replace(/\n/g, '<br>');
+  const lines = escaped.split(/\r?\n/);
+  const out = [];
+  let inList = false;
+  let inTable = false;
+  let tableRows = [];
 
-  return s;
+  function flushList() {
+    if (inList) {
+      out.push('</ul>');
+      inList = false;
+    }
+  }
+
+  function flushTable() {
+    if (!inTable || !tableRows.length) return;
+    let html = '<div style="overflow-x:auto;margin:10px 0;"><table style="width:100%;border-collapse:collapse;font-size:0.8rem;border:1px solid rgba(0,245,255,0.2);">';
+    tableRows.forEach((r, idx) => {
+      const cells = r.split('|').slice(1, -1).map(c => formatInlineMarkdown(c.trim()));
+      if (idx === 0) {
+        html += '<thead style="background:rgba(0,245,255,0.1);color:#00F5FF;"><tr>' +
+          cells.map(c => `<th style="padding:7px 10px;border:1px solid rgba(0,245,255,0.18);text-align:left;">${c}</th>`).join('') +
+          '</tr></thead><tbody>';
+      } else {
+        html += '<tr>' +
+          cells.map(c => `<td style="padding:6px 10px;border:1px solid rgba(255,255,255,0.08);">${c}</td>`).join('') +
+          '</tr>';
+      }
+    });
+    html += '</tbody></table></div>';
+    out.push(html);
+    inTable = false;
+    tableRows = [];
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const trimmed = raw.trim();
+
+    // Table detection
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      flushList();
+      if (/^\|[\s:|-]+\|$/.test(trimmed)) {
+        continue; // separator row
+      }
+      inTable = true;
+      tableRows.push(trimmed);
+      continue;
+    } else if (inTable) {
+      flushTable();
+    }
+
+    if (trimmed === '---' || trimmed === '***') {
+      flushList();
+      out.push('<hr style="border:none;border-top:1px solid rgba(0,245,255,0.18);margin:12px 0;">');
+      continue;
+    }
+
+    if (trimmed.startsWith('### ')) {
+      flushList();
+      out.push(`<h4 style="font-family:'Space Grotesk',sans-serif;color:#00F5FF;margin:12px 0 6px;font-size:0.98rem;">${formatInlineMarkdown(trimmed.slice(4))}</h4>`);
+      continue;
+    }
+    if (trimmed.startsWith('## ')) {
+      flushList();
+      out.push(`<h3 style="font-family:'Space Grotesk',sans-serif;color:#fff;margin:14px 0 6px;font-size:1.08rem;">${formatInlineMarkdown(trimmed.slice(3))}</h3>`);
+      continue;
+    }
+    if (trimmed.startsWith('# ')) {
+      flushList();
+      out.push(`<h2 style="font-family:'Space Grotesk',sans-serif;color:#fff;margin:14px 0 8px;font-size:1.18rem;">${formatInlineMarkdown(trimmed.slice(2))}</h2>`);
+      continue;
+    }
+
+    if (trimmed.startsWith('&gt; ')) {
+      flushList();
+      out.push(`<div style="border-left:3px solid #00F5FF;background:rgba(0,245,255,0.06);padding:8px 12px;border-radius:6px;margin:8px 0;font-size:0.82rem;">${formatInlineMarkdown(trimmed.slice(5))}</div>`);
+      continue;
+    }
+
+    if (/^[-*•]\s+/.test(trimmed)) {
+      if (!inList) {
+        out.push('<ul style="margin:6px 0 8px 18px;padding:0;line-height:1.6;">');
+        inList = true;
+      }
+      out.push(`<li style="margin-bottom:4px;">${formatInlineMarkdown(trimmed.replace(/^[-*•]\s+/, ''))}</li>`);
+      continue;
+    } else {
+      flushList();
+    }
+
+    if (trimmed === '') {
+      out.push('<div style="height:8px;"></div>');
+    } else {
+      out.push(`<div style="line-height:1.65;">${formatInlineMarkdown(raw)}</div>`);
+    }
+  }
+
+  flushList();
+  flushTable();
+  return out.join('');
 }
 
 function scrollChatToBottom() {

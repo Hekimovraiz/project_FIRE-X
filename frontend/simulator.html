@@ -463,9 +463,31 @@ body {
           </div>
           <input type="range" min="20" max="120" value="101.3" step="0.5" id="slider-custom-press" oninput="updateCustomSim()">
         </div>
+        <div class="slider-group">
+          <div class="slider-header">
+            <span style="color:rgba(255,255,255,0.6)">Gravity Regime (g)</span>
+            <span style="color:var(--neon-orange);font-weight:700;" id="val-custom-grav">0.16g (Moon)</span>
+          </div>
+          <input type="range" min="0" max="1" value="0.16" step="0.02" id="slider-custom-grav" oninput="updateCustomSim()">
+        </div>
       </div>
 
-      <div style="margin-top:28px;">
+      <!-- MATERIAL FLAMMABILITY FACTOR (Mf) SELECTOR -->
+      <div style="margin-top:20px;padding:16px;border-radius:14px;background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.22);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#00E676;font-weight:700;">NASA-STD-6001 MATERIAL INDEX (M<sub>f</sub>)</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#fff;font-weight:700;" id="val-material-mf">Mf = 1.00</span>
+        </div>
+        <select id="select-material-mf" onchange="onMaterialFactorChange()" style="width:100%;padding:10px 12px;border-radius:10px;background:#050B16;border:1px solid rgba(0,245,255,0.25);color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.78rem;outline:none;">
+          <option value="1.00" data-mat="PMMA (Cast Acrylic)">PMMA Cast Acrylic (Baseline Mf = 1.00)</option>
+          <option value="1.25" data-mat="SIBAL Fabric (Cotton/Fiberglass)">SIBAL Cotton-Fiberglass Fabric (Mf = 1.25)</option>
+          <option value="0.65" data-mat="Ultem 1000 (PEI)">Ultem 1000 / Polyimide Aerospace Resin (Mf = 0.65)</option>
+          <option value="0.55" data-mat="Nomex HT90-40">Nomex HT90-40 Aramid Crew Textile (Mf = 0.55)</option>
+          <option value="0.40" data-mat="PMMA (Cast Acrylic)">PF-PTFE / Teflon EVA Fluoropolymer (Mf = 0.40)</option>
+        </select>
+      </div>
+
+      <div style="margin-top:20px;">
         <button class="btn btn-neon" style="width:100%;justify-content:center;" onclick="askAIAboutHabitat()">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Evaluate Habitat Safety with AI
@@ -676,6 +698,114 @@ body {
       </div>
     </div>
   </section>
+
+  <!-- ═══ MODULE 2: SIDE-BY-SIDE EXPERIMENT BENCHMARK & PARAMETER INVARIANCE ANALYZER ═══ -->
+  <section id="compare-benchmark-section" style="margin-bottom:64px;">
+    <div style="background:var(--bg-surface-1);border:1px solid rgba(0,245,255,0.22);border-radius:20px;padding:32px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px;">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--neon-cyan);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">
+            MULTI-EXPERIMENT BENCHMARK // CONTROLLED INVARIANTS vs BOUNDARY VARIATIONS
+          </div>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.65rem;font-weight:800;color:#fff;">
+            Side-by-Side Flight Test Comparison &amp; Variable Invariance Matrix
+          </h2>
+          <p style="font-size:0.88rem;color:rgba(255,255,255,0.6);max-width:850px;margin-top:6px;">
+            Compare 2 to 4 canonical NASA PSI flight experiments side by side. Automatically isolates which variables stayed constant (invariants) and how boundary conditions and combustion outcomes differed.
+          </p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <input id="cmp-ids-input" type="text" value="FLEX-001,FLEX-018,BASS2-001,SAF1-F1C1-F1C2" placeholder="e.g. FLEX-001,BASS2-001" style="padding:9px 14px;border-radius:10px;background:#050B16;border:1px solid rgba(0,245,255,0.3);color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.78rem;min-width:290px;">
+          <button class="btn btn-neon" onclick="runComparisonFromInput()" style="padding:9px 16px;font-size:0.78rem;">Compare Runs</button>
+          <a href="/explorer" class="btn" style="padding:9px 14px;font-size:0.78rem;border:1px solid rgba(255,255,255,0.18);color:#fff;text-decoration:none;border-radius:10px;">Select in Explorer →</a>
+        </div>
+      </div>
+
+      <!-- INVARIANCE SUMMARY CARDS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;" id="cmp-invariance-cards">
+        <div style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.28);border-radius:12px;padding:16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#00E676;font-weight:700;margin-bottom:6px;">✓ WHAT STAYED THE SAME (CONTROLLED INVARIANTS)</div>
+          <div id="cmp-same-text" style="font-size:0.84rem;color:rgba(255,255,255,0.85);line-height:1.55;">Loading parameter invariance analysis...</div>
+        </div>
+        <div style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.28);border-radius:12px;padding:16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#FF6B35;font-weight:700;margin-bottom:6px;">∆ HOW TESTS DIFFERED (BOUNDARY &amp; OUTCOME VARIATIONS)</div>
+          <div id="cmp-diff-text" style="font-size:0.84rem;color:rgba(255,255,255,0.85);line-height:1.55;">Loading comparative delta analysis...</div>
+        </div>
+      </div>
+
+      <!-- SIDE-BY-SIDE COMPARISON TABLE -->
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr id="cmp-table-head">
+              <th>Parameter / Metric</th>
+            </tr>
+          </thead>
+          <tbody id="cmp-table-body">
+            <!-- Populated dynamically via loadComparisonBenchmark -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ MODULE 3: EMPIRICAL PREDICTIVE COMBUSTION MODELING STUDIO (PSI-25 / PSI-69 / PSI-98) ═══ -->
+  <section id="predictive-modeling-section" style="margin-bottom:64px;">
+    <div style="background:var(--bg-surface-1);border:1px solid rgba(255,107,53,0.24);border-radius:20px;padding:32px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:22px;">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#FF6B35;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">
+            PREDICTIVE PHYSICS ENGINE // NASA PSI-25 SOLID SPREAD &amp; PSI-69 DROPLET d²-LAW
+          </div>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.65rem;font-weight:800;color:#fff;">
+            Empirical Predictive Combustion &amp; Extinguishment Modeling
+          </h2>
+          <p style="font-size:0.88rem;color:rgba(255,255,255,0.6);max-width:860px;margin-top:6px;">
+            Predicts solid flame spread rate ($V_f$), Minimum Oxygen Concentration (MOC), spherical droplet burning rate constant ($K$), radiative extinction diameter ($d_e$), and cool-flame transition under current atmospheric parameters.
+          </p>
+        </div>
+        <button class="btn btn-neon" onclick="runPredictiveModels()" style="padding:10px 18px;font-size:0.8rem;">Run Predictive Models</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
+        <div style="background:#050B16;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;">
+          <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,255,255,0.55);margin-bottom:6px;">SOLID FUEL (PSI-25 / PSI-98)</label>
+          <select id="pred-solid-mat" onchange="runPredictiveModels()" style="width:100%;padding:8px;border-radius:8px;background:#0B1325;border:1px solid rgba(0,245,255,0.25);color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.76rem;">
+            <option value="PMMA (Cast Acrylic)">PMMA (Cast Acrylic)</option>
+            <option value="SIBAL Fabric (Cotton/Fiberglass)">SIBAL Fabric (Cotton/Fiberglass)</option>
+            <option value="Nomex HT90-40">Nomex HT90-40</option>
+            <option value="Ultem 1000 (PEI)">Ultem 1000 (PEI)</option>
+          </select>
+        </div>
+        <div style="background:#050B16;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;">
+          <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,255,255,0.55);margin-bottom:6px;">VENTILATION FLOW (cm/s)</label>
+          <input id="pred-flow-cms" type="number" min="0" max="55" step="0.5" value="8.0" onchange="runPredictiveModels()" style="width:100%;padding:8px;border-radius:8px;background:#0B1325;border:1px solid rgba(0,245,255,0.25);color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+        </div>
+        <div style="background:#050B16;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;">
+          <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,255,255,0.55);margin-bottom:6px;">DROPLET FUEL (PSI-69 FLEX)</label>
+          <select id="pred-drop-fuel" onchange="runPredictiveModels()" style="width:100%;padding:8px;border-radius:8px;background:#0B1325;border:1px solid rgba(255,107,53,0.3);color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.76rem;">
+            <option value="n-Heptane Droplet">n-Heptane Droplet</option>
+            <option value="Methanol Droplet">Methanol Droplet</option>
+          </select>
+        </div>
+        <div style="background:#050B16;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;">
+          <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,255,255,0.55);margin-bottom:6px;">INITIAL DROPLET D₀ (mm)</label>
+          <input id="pred-d0-mm" type="number" min="1.0" max="5.0" step="0.1" value="2.8" onchange="runPredictiveModels()" style="width:100%;padding:8px;border-radius:8px;background:#0B1325;border:1px solid rgba(255,107,53,0.3);color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.2);border-radius:14px;padding:18px;" id="pred-solid-output">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--neon-cyan);font-weight:700;margin-bottom:8px;">SOLID FLAME SPREAD PREDICTION (PSI-25 / PSI-98)</div>
+          <div style="font-size:0.84rem;color:rgba(255,255,255,0.8);" id="pred-solid-body">Calculating solid flame spread rate...</div>
+        </div>
+        <div style="background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.22);border-radius:14px;padding:18px;" id="pred-drop-output">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:#FF6B35;font-weight:700;margin-bottom:8px;">DROPLET d²-LAW &amp; COOL-FLAME PREDICTION (PSI-69)</div>
+          <div style="font-size:0.84rem;color:rgba(255,255,255,0.8);" id="pred-drop-body">Calculating droplet extinction boundary...</div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 
@@ -689,7 +819,7 @@ body {
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-<span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.3);">© 2026 NASA FIRE-X · NASA Space Apps Challenge 2026 · Data: NASA PSI · 569 Canonical Tests</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.3);">© 2026 NASA FIRE-X · NASA Space Apps Challenge 2026 · 569 Records (407 PSI-Verified · 162 Illustrative)</span>
     </div>
   </div>
 </footer>
@@ -743,6 +873,28 @@ function animateHazard() {
   hazardRenderer.render(hazardScene, hazardCamera);
 }
 
+function getSelectedMaterialFactor() {
+  const sel = document.getElementById('select-material-mf');
+  return sel ? parseFloat(sel.value) || 1.0 : 1.0;
+}
+
+function onMaterialFactorChange() {
+  const mf = getSelectedMaterialFactor();
+  const lbl = document.getElementById('val-material-mf');
+  if (lbl) lbl.textContent = `Mf = ${mf.toFixed(2)}`;
+  const sel = document.getElementById('select-material-mf');
+  const matAttr = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].getAttribute('data-mat') : null;
+  if (matAttr) {
+    const predMat = document.getElementById('pred-solid-mat');
+    if (predMat) predMat.value = matAttr;
+  }
+  if (currentScenarioId === 'custom') {
+    updateCustomSim();
+  } else {
+    selectScenario(currentScenarioId);
+  }
+}
+
 async function selectScenario(id, btnEl) {
   currentScenarioId = id;
 
@@ -759,11 +911,13 @@ async function selectScenario(id, btnEl) {
     customBox.classList.remove('show');
   }
 
+  const mf = getSelectedMaterialFactor();
   try {
-    const res = await fetch(`/api/mission-scenario/${id}`);
+    const res = await fetch(`/api/mission-scenario/${id}?material_factor=${mf}`);
     const json = await res.json();
     const data = json.data || json;
     applyScenarioData(data);
+    runPredictiveModels();
   } catch (e) {
     console.error('Scenario fetch error:', e);
   }
@@ -794,7 +948,7 @@ function applyScenarioData(data) {
   document.getElementById('met-po2').textContent = (m.oxygen_partial_pressure_kpa != null ? m.oxygen_partial_pressure_kpa.toFixed(2) + ' kPa' : '21.27 kPa');
   document.getElementById('met-de').textContent = (m.projected_extinction_diameter_mm != null ? m.projected_extinction_diameter_mm.toFixed(3) + ' mm' : '1.28 mm');
   document.getElementById('met-mult').textContent = (m.burn_rate_multiplier != null ? m.burn_rate_multiplier.toFixed(2) + '×' : '1.00×');
-  document.getElementById('met-purge').textContent = (m.required_inert_purge_pct != null ? m.required_inert_purge_pct.toFixed(1) + '%' : '28.5%');
+  document.getElementById('met-purge').textContent = (m.required_inert_purge_pct != null ? m.required_inert_purge_pct.toFixed(1) + '%' : '31.0%');
 
   document.getElementById('advisory-content').textContent = isAz ? (data.advisory_az || data.advisory_en || '') : (data.advisory_en || '');
 
@@ -820,12 +974,14 @@ function applyScenarioData(data) {
   if (rankBody && Array.isArray(data.investigation_rankings)) {
     rankBody.innerHTML = data.investigation_rankings.map(r => {
       const scoreColor = r.relevance_score >= 93 ? '#00E676' : (r.relevance_score >= 85 ? '#00F5FF' : '#FF6B35');
+      const recBadge = r.matching_records != null ? `<div style="font-size:0.66rem;color:rgba(255,255,255,0.5);margin-top:2px;">DB: ${r.matching_records} runs (${r.psi_verified_records || 0} PSI)</div>` : '';
       return `
         <tr>
           <td class="td-id">#${r.rank}</td>
           <td style="white-space:normal;min-width:180px;">
             <div style="font-weight:700;color:#fff;">${r.investigation}</div>
             <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--neon-cyan);">${r.psi_id}</div>
+            ${recBadge}
           </td>
           <td style="min-width:140px;">
             <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${scoreColor};margin-bottom:4px;">${r.relevance_score}%</div>
@@ -856,17 +1012,154 @@ function applyScenarioData(data) {
 async function updateCustomSim() {
   const o2 = parseFloat(document.getElementById('slider-custom-o2').value);
   const press = parseFloat(document.getElementById('slider-custom-press').value);
+  const gravEl = document.getElementById('slider-custom-grav');
+  const grav = gravEl ? parseFloat(gravEl.value) : 0.0;
+  const mf = getSelectedMaterialFactor();
 
   document.getElementById('val-custom-o2').textContent = o2.toFixed(1) + '%';
   document.getElementById('val-custom-press').textContent = press.toFixed(1) + ' kPa';
+  const gravValEl = document.getElementById('val-custom-grav');
+  if (gravValEl) {
+    let gTag = '';
+    if (grav === 0) gTag = ' (0g ISS)';
+    else if (Math.abs(grav - 0.16) <= 0.03) gTag = ' (Moon)';
+    else if (Math.abs(grav - 0.38) <= 0.03) gTag = ' (Mars)';
+    else if (grav >= 0.98) gTag = ' (1g Earth)';
+    gravValEl.textContent = grav.toFixed(2) + 'g' + gTag;
+  }
 
   try {
-    const res = await fetch(`/api/mission-scenario/custom?custom_o2=${o2}&custom_pressure=${press}`);
+    const res = await fetch(`/api/mission-scenario/custom?custom_o2=${o2}&custom_pressure=${press}&custom_gravity=${grav}&material_factor=${mf}`);
     const json = await res.json();
     const data = json.data || json;
     applyScenarioData(data);
+    runPredictiveModels();
   } catch (e) {
     console.error('Custom sim error:', e);
+  }
+}
+
+async function loadComparisonBenchmark(idsList, scrollIntoView = false) {
+  const cleanIds = (idsList || []).map(s => s.trim()).filter(Boolean).slice(0, 4);
+  if (!cleanIds.length) return;
+  const inputEl = document.getElementById('cmp-ids-input');
+  if (inputEl) inputEl.value = cleanIds.join(',');
+
+  try {
+    const res = await fetch('/api/compare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ experiment_ids: cleanIds })
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    const data = json.data || json;
+    const exps = data.experiments || [];
+    const inv = data.parameter_invariance || {};
+    const isAz = (localStorage.getItem('firex_lang') === 'az');
+
+    const sameEl = document.getElementById('cmp-same-text');
+    const diffEl = document.getElementById('cmp-diff-text');
+    if (sameEl) sameEl.textContent = isAz ? (inv.what_stayed_same_az || inv.what_stayed_same_en || '—') : (inv.what_stayed_same_en || '—');
+    if (diffEl) diffEl.textContent = isAz ? (inv.how_tests_differed_az || inv.how_tests_differed_en || '—') : (inv.how_tests_differed_en || '—');
+
+    const headRow = document.getElementById('cmp-table-head');
+    const bodyEl = document.getElementById('cmp-table-body');
+    if (headRow && bodyEl && exps.length) {
+      headRow.innerHTML = `<th>${isAz ? 'Parametr / Göstərici' : 'Parameter / Metric'}</th>` +
+        exps.map(e => `<th><span style="color:var(--neon-cyan);">${e.experiment_id}</span> <span style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:${e.data_provenance === 'psi_verified' ? 'rgba(0,230,118,0.14)' : 'rgba(255,215,64,0.14)'};color:${e.data_provenance === 'psi_verified' ? '#00E676' : '#FFD740'};">${e.data_provenance === 'psi_verified' ? '✓ PSI' : '⚠ ILLUST.'}</span></th>`).join('');
+
+      const rowsSpec = [
+        [isAz ? 'Uçuş Tədqiqatı' : 'Investigation Suite', e => e.dataset_family || '—'],
+        [isAz ? 'BKS Qurğusu / Aparat' : 'ISS Facility / Hardware', e => e.facility_hardware || '—'],
+        [isAz ? 'Yanacaq / Material' : 'Fuel / Material', e => e.fuel_material || '—'],
+        [isAz ? 'Oksigen Qatılığı (O₂)' : 'Oxygen Concentration (O₂)', e => e.oxygen_pct != null ? `${Number(e.oxygen_pct).toFixed(1)}%` : '—'],
+        [isAz ? 'Kamera Təzyiqi' : 'Chamber Pressure', e => e.pressure_kpa != null ? `${Number(e.pressure_kpa).toFixed(1)} kPa` : '—'],
+        [isAz ? 'Məcburi Hava Axını' : 'Forced Airflow Velocity', e => e.airflow_velocity_cms != null ? `${Number(e.airflow_velocity_cms).toFixed(2)} cm/s` : '—'],
+        [isAz ? 'Yanma Müddəti' : 'Burn Duration', e => e.burn_time_s != null ? `${Number(e.burn_time_s).toFixed(1)} s` : '—'],
+        [isAz ? 'Sönmə Diametri (de)' : 'Extinction Diameter (de)', e => e.extinction_diameter_mm != null ? `${Number(e.extinction_diameter_mm).toFixed(3)} mm` : '—'],
+        [isAz ? 'Sönmə Rejimi' : 'Extinction Outcome', e => e.extinction_outcome || '—'],
+        [isAz ? 'Məlumat Mənbəyi' : 'Provenance Source', e => `<span style="font-size:0.72rem;color:rgba(255,255,255,0.6);">${e.provenance_source || 'NASA PSI'}</span>`]
+      ];
+
+      bodyEl.innerHTML = rowsSpec.map(([label, fn]) => {
+        const vals = exps.map(fn);
+        const allSame = vals.length > 1 && vals.every(v => v === vals[0] && v !== '—');
+        const badge = allSame
+          ? `<span style="margin-left:6px;font-size:0.62rem;color:#00E676;font-family:'JetBrains Mono',monospace;">[INVARIANT]</span>`
+          : `<span style="margin-left:6px;font-size:0.62rem;color:#FF6B35;font-family:'JetBrains Mono',monospace;">[VARIES]</span>`;
+        return `<tr><td style="font-weight:700;color:#fff;">${label}${badge}</td>${vals.map(v => `<td class="td-mono">${v}</td>`).join('')}</tr>`;
+      }).join('');
+    }
+
+    if (scrollIntoView) {
+      const sec = document.getElementById('compare-benchmark-section');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } catch (e) {
+    console.error('Compare benchmark error:', e);
+  }
+}
+
+function runComparisonFromInput() {
+  const raw = document.getElementById('cmp-ids-input').value || '';
+  const ids = raw.split(',').map(s => s.trim()).filter(Boolean);
+  loadComparisonBenchmark(ids, false);
+}
+
+async function runPredictiveModels() {
+  const o2Text = (document.getElementById('met-o2').textContent || '21.0').replace('%', '').trim();
+  const pressText = (document.getElementById('met-press').textContent || '101.3').replace('kPa', '').trim();
+  const o2 = parseFloat(o2Text) || 21.0;
+  const press = parseFloat(pressText) || 101.3;
+  const solidMat = document.getElementById('pred-solid-mat').value;
+  const flowCms = parseFloat(document.getElementById('pred-flow-cms').value) || 8.0;
+  const dropFuel = document.getElementById('pred-drop-fuel').value;
+  const d0Mm = parseFloat(document.getElementById('pred-d0-mm').value) || 2.8;
+
+  try {
+    const [resSolid, resDrop] = await Promise.all([
+      fetch('/api/combustion/predict-solid-flame-spread', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ material: solidMat, flow_velocity_cms: flowCms, oxygen_pct: o2, pressure_kpa: press })
+      }),
+      fetch('/api/combustion/predict-droplet-extinction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fuel: dropFuel, d0_mm: d0Mm, oxygen_pct: o2, pressure_kpa: press, co2_pct: 0.0, he_pct: 0.0 })
+      })
+    ]);
+
+    if (resSolid.ok) {
+      const js = await resSolid.json();
+      const s = js.data || js;
+      document.getElementById('pred-solid-body').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+          <div>Spread Rate (V<sub>f</sub>): <strong style="color:var(--neon-cyan);">${s.predicted_flame_spread_rate_mms} mm/s</strong></div>
+          <div>Dynamic MOC: <strong style="color:#FF6B35;">${s.dynamic_moc_threshold_pct}% O₂</strong></div>
+          <div>Regime: <strong style="color:#00E676;">${s.combustion_regime}</strong></div>
+          <div>Burn State: <strong>${s.sustained_propagation ? 'SUSTAINED SPREAD' : 'SELF-EXTINGUISHING'}</strong></div>
+        </div>
+        <div style="margin-top:8px;font-size:0.75rem;color:rgba(255,255,255,0.6);">${s.nasa_reference || 'PSI-25 (BASS-II) & PSI-98 (SAFFIRE-I)'}</div>
+      `;
+    }
+
+    if (resDrop.ok) {
+      const jd = await resDrop.json();
+      const d = jd.data || jd;
+      document.getElementById('pred-drop-body').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+          <div>Burning Rate (K): <strong style="color:#FF6B35;">${d.burning_rate_constant_k_mm2s} mm²/s</strong></div>
+          <div>Quench Diam (d<sub>e</sub>): <strong style="color:var(--neon-cyan);">${d.predicted_extinction_diameter_mm} mm</strong></div>
+          <div>Hot Burn Time: <strong>${d.predicted_hot_flame_burn_time_s} s</strong></div>
+          <div>Cool Flame (600–800K): <strong style="color:#FFD166;">${d.cool_flame_second_stage_likely ? 'LIKELY (Two-Stage)' : 'Minimal'}</strong></div>
+        </div>
+        <div style="margin-top:8px;font-size:0.75rem;color:rgba(255,255,255,0.6);">${d.extinction_mechanism || 'PSI-69 (FLEX) Spherical Droplet d²-Law'}</div>
+      `;
+    }
+  } catch (e) {
+    console.error('Predictive model error:', e);
   }
 }
 
@@ -881,7 +1174,20 @@ function askAIAboutHabitat() {
 
 document.addEventListener('DOMContentLoaded', () => {
   init3DHazardSphere();
-  selectScenario('iss');
+  const params = new URLSearchParams(window.location.search);
+  const cmpParam = params.get('compare');
+  const envParam = params.get('env') || params.get('scenario');
+  if (envParam) {
+    selectScenario(envParam);
+  } else {
+    selectScenario('iss');
+  }
+  if (cmpParam) {
+    const ids = cmpParam.split(',').map(s => s.trim()).filter(Boolean);
+    loadComparisonBenchmark(ids, true);
+  } else {
+    loadComparisonBenchmark(['FLEX-001', 'FLEX-018', 'BASS2-001', 'SAF1-F1C1-F1C2'], false);
+  }
 });
 </script>
 </body>

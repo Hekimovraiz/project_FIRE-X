@@ -110,7 +110,7 @@ def get_db_connection():
     return conn
 
 
-def get_stats() -> Dict[str, Any]:
+def get_stats(lite: bool = False) -> Dict[str, Any]:
     """Retrieve high-level statistical KPIs and chart aggregation distributions."""
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -127,6 +127,27 @@ def get_stats() -> Dict[str, Any]:
     cursor.execute(f"SELECT COUNT(*) FROM canonical_experiments WHERE dataset_family IN ({placeholders_v})",
                    PSI_VERIFIED_FAMILIES)
     psi_verified_count = cursor.fetchone()[0]
+
+    # Dataset families breakdown
+    cursor.execute("""
+        SELECT dataset_family, COUNT(*) as count 
+        FROM canonical_experiments 
+        GROUP BY dataset_family 
+        ORDER BY count DESC
+    """)
+    families_dist = [{"family": row["dataset_family"], "count": row["count"],
+                      "provenance": provenance_of(row["dataset_family"])} for row in cursor.fetchall()]
+
+    if lite:
+        conn.close()
+        return {
+            "total_experiments": total_experiments,
+            "total_families": total_families,
+            "psi_verified_experiments": psi_verified_count,
+            "illustrative_experiments": total_experiments - psi_verified_count,
+            "psi_verified_families": list(PSI_VERIFIED_FAMILIES),
+            "families_distribution": families_dist,
+        }
 
     # Extinction outcomes breakdown
     cursor.execute("""
@@ -149,15 +170,73 @@ def get_stats() -> Dict[str, Any]:
     """)
     top_fuels = [{"fuel": row["fuel_material"], "count": row["count"]} for row in cursor.fetchall()]
 
-    # Dataset families breakdown
+    # Grouped 6 Fuel Categories summing to all 569 experiments (for Analytics Chart 3)
     cursor.execute("""
-        SELECT dataset_family, COUNT(*) as count 
-        FROM canonical_experiments 
-        GROUP BY dataset_family 
-        ORDER BY count DESC
+        SELECT
+            CASE
+                WHEN fuel_material LIKE '%Methanol%' OR fuel_material LIKE '%Ethanol%' THEN 'Methanol / Alcohols'
+                WHEN fuel_material LIKE '%Heptane%' OR fuel_material LIKE '%Octane%' OR fuel_material LIKE '%Decane%' THEN 'n-Heptane / Alkanes'
+                WHEN fuel_material LIKE '%PMMA%' OR fuel_material LIKE '%Acrylic%' OR fuel_material LIKE '%clear rod%' OR fuel_material LIKE '%Delrin%' THEN 'PMMA / Thermoplastics'
+                WHEN fuel_material LIKE '%Cotton%' OR fuel_material LIKE '%SIBAL%' OR fuel_material LIKE '%Nomex%' OR fuel_material LIKE '%Fabric%' THEN 'Cotton / SIBAL Fabrics'
+                WHEN fuel_material LIKE '%Methane%' OR fuel_material LIKE '%Ethylene%' OR fuel_material LIKE '%Butane%' OR fuel_material LIKE '%Propane%' OR fuel_material LIKE '%Hydrogen%' THEN 'Gaseous Fuels (CH4/C2H4/C4H10)'
+                ELSE 'Wire Insulation & Dust'
+            END AS category,
+            COUNT(*) AS cnt
+        FROM canonical_experiments
+        GROUP BY category
+        ORDER BY cnt DESC
     """)
-    families_dist = [{"family": row["dataset_family"], "count": row["count"],
-                      "provenance": provenance_of(row["dataset_family"])} for row in cursor.fetchall()]
+    fuel_categories = [{"category": r["category"], "count": r["cnt"]} for r in cursor.fetchall()]
+
+    # Grouped 4 Extinction Outcome Regimes summing to all 569 experiments (for Analytics Chart 4)
+    cursor.execute("""
+        SELECT
+            CASE
+                WHEN extinction_outcome LIKE '%Radiative%' OR extinction_outcome = 'Extinction' OR extinction_outcome LIKE '%Quench%' OR extinction_outcome LIKE '%Cool Flame%' OR extinction_outcome LIKE '%O2 Limit%' THEN 'radiative'
+                WHEN extinction_outcome LIKE '%Complete%' OR extinction_outcome LIKE '%Completion%' OR extinction_outcome LIKE '%Disruption%' OR extinction_outcome LIKE '%Depletion%' OR extinction_outcome LIKE '%Burnout%' THEN 'depletion'
+                WHEN extinction_outcome LIKE '%Blowoff%' OR extinction_outcome LIKE '%Blowout%' OR extinction_outcome LIKE '%Liftoff%' THEN 'blowoff'
+                ELSE 'sustained'
+            END AS regime,
+            COUNT(*) AS cnt
+        FROM canonical_experiments
+        GROUP BY regime
+    """)
+    regime_counts = {r["regime"]: r["cnt"] for r in cursor.fetchall()}
+    denom = max(1, total_experiments)
+    outcome_taxonomy = [
+        {
+            "key": "radiative",
+            "short_label": "Radiative / Quench",
+            "label_en": "Radiative Quenching & Extinction Limit",
+            "label_az": "Radiativ Sönmə və O₂/İstilik İtkisi Həddi",
+            "count": regime_counts.get("radiative", 0),
+            "pct": round(100.0 * regime_counts.get("radiative", 0) / denom, 1),
+        },
+        {
+            "key": "depletion",
+            "short_label": "Depletion / Disruption",
+            "label_en": "Fuel Depletion / Droplet Disruption / Burnout",
+            "label_az": "Yanacağın Tam Tükənməsi / Damcı Parçalanması",
+            "count": regime_counts.get("depletion", 0),
+            "pct": round(100.0 * regime_counts.get("depletion", 0) / denom, 1),
+        },
+        {
+            "key": "sustained",
+            "short_label": "Sustained / Aerosol",
+            "label_en": "Sustained Microgravity Burn & Aerosol Regimes",
+            "label_az": "Davamlı Sabit Yanma və Aerozol/Tüstü Rejimləri",
+            "count": regime_counts.get("sustained", 0),
+            "pct": round(100.0 * regime_counts.get("sustained", 0) / denom, 1),
+        },
+        {
+            "key": "blowoff",
+            "short_label": "Blowoff / Liftoff",
+            "label_en": "Convective Blowoff / High-Flow Liftoff",
+            "label_az": "Konvektiv Üfürmə / Hava Axını ilə Qopma",
+            "count": regime_counts.get("blowoff", 0),
+            "pct": round(100.0 * regime_counts.get("blowoff", 0) / denom, 1),
+        },
+    ]
 
     # Oxygen vs Extinction Diameter data points (for scatter/bubble chart)
     cursor.execute("""
@@ -200,6 +279,54 @@ def get_stats() -> Dict[str, Any]:
         for row in cursor.fetchall()
     ]
 
+    # All 569 canonical experiments for the 3D/4D Holo-Lab scatter cube
+    cursor.execute("""
+        SELECT experiment_id, dataset_family, fuel_material, oxygen_pct, pressure_kpa,
+               extinction_diameter_mm, burn_time_s, airflow_velocity_cms, extinction_outcome
+        FROM canonical_experiments
+        ORDER BY CASE WHEN dataset_family IN ('FLEX', 'BASS-II', 'SAFFIRE-I') THEN 0 ELSE 1 END ASC, experiment_id ASC
+    """)
+    holo_3d_points = []
+    for row in cursor.fetchall():
+        o2_v = round(row["oxygen_pct"], 1) if row["oxygen_pct"] is not None else 21.0
+        pres_v = round(row["pressure_kpa"], 1) if row["pressure_kpa"] is not None else 101.3
+        de_raw = row["extinction_diameter_mm"]
+        de_v = round(de_raw, 2) if (de_raw is not None and de_raw > 0) else round(2.85 * math.exp(-0.038 * o2_v), 2)
+        holo_3d_points.append({
+            "id": row["experiment_id"],
+            "family": row["dataset_family"],
+            "fuel": row["fuel_material"] or "Unknown",
+            "o2": o2_v,
+            "pressure": pres_v,
+            "de": de_v,
+            "de_measured": bool(de_raw is not None and de_raw > 0),
+            "burn_time": round(row["burn_time_s"], 1) if row["burn_time_s"] is not None else None,
+            "airflow": round(row["airflow_velocity_cms"], 1) if row["airflow_velocity_cms"] is not None else 0.0,
+            "outcome": row["extinction_outcome"] or "N/A",
+            "provenance": provenance_of(row["dataset_family"]),
+        })
+
+    # Real featured PSI-verified experiment for the 3D Holo-Lab HUD card (FLEX-018)
+    cursor.execute("""
+        SELECT experiment_id, dataset_family, fuel_material, oxygen_pct, pressure_kpa,
+               extinction_diameter_mm, burn_time_s, extinction_outcome
+        FROM canonical_experiments
+        WHERE experiment_id = 'FLEX-018'
+        LIMIT 1
+    """)
+    feat_row = cursor.fetchone()
+    featured_exp = {
+        "id": feat_row["experiment_id"] if feat_row else "FLEX-018",
+        "family": feat_row["dataset_family"] if feat_row else "FLEX",
+        "fuel": feat_row["fuel_material"] if feat_row else "Heptane",
+        "o2": round(feat_row["oxygen_pct"], 1) if (feat_row and feat_row["oxygen_pct"]) else 21.0,
+        "pressure": round(feat_row["pressure_kpa"], 1) if (feat_row and feat_row["pressure_kpa"]) else 207.2,
+        "de": round(feat_row["extinction_diameter_mm"], 2) if (feat_row and feat_row["extinction_diameter_mm"]) else 1.77,
+        "burn_time": round(feat_row["burn_time_s"], 1) if (feat_row and feat_row["burn_time_s"]) else 7.6,
+        "outcome": feat_row["extinction_outcome"] if feat_row else "Extinction",
+        "provenance": "psi_verified",
+    }
+
     # Summary metrics averages
     cursor.execute("""
         SELECT 
@@ -229,9 +356,13 @@ def get_stats() -> Dict[str, Any]:
         },
         "outcomes": outcomes,
         "top_fuels": top_fuels,
+        "fuel_categories": fuel_categories,
+        "outcome_taxonomy": outcome_taxonomy,
         "families_distribution": families_dist,
         "extinction_scatter": extinction_scatter,
-        "burn_airflow_data": burn_airflow_data
+        "burn_airflow_data": burn_airflow_data,
+        "holo_3d_points": holo_3d_points,
+        "featured_experiment": featured_exp,
     }
 
 
@@ -248,7 +379,7 @@ def query_experiments(
     sort_dir: str = "ASC",
     provenance: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Multi-parameter filtering & search across all 892 experiments."""
+    """Multi-parameter filtering & search across all 569 canonical experiments."""
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -261,20 +392,61 @@ def query_experiments(
         params.extend([q_wildcard, q_wildcard, q_wildcard, q_wildcard, q_wildcard, q_wildcard])
 
     if family and family.lower() != "all":
-        if family in ('BASS-I', 'BASS-II', 'FLEX', 'FLEX-2', 'SAME', 'SAME-R', 'ACME-CFI', 'ACME-CFI-G'):
+        fam_clean = family.strip()
+        if fam_clean == "ACME":
+            conditions.append("dataset_family IN ('ACME (CIR)', 'ACME-BRE', 'ACME-CFI', 'ACME-CLD', 'ACME-EFIELD')")
+        elif fam_clean == "SAFFIRE":
+            conditions.append("dataset_family IN ('SAFFIRE-I', 'SAFFIRE-II', 'SAFFIRE-III')")
+        elif fam_clean == "DAFT":
+            conditions.append("dataset_family LIKE 'DAFT%'")
+        elif fam_clean == "SAME":
+            conditions.append("dataset_family IN ('SAME', 'SAME (Aerosol)')")
+        elif fam_clean in ('BASS-I', 'BASS-II', 'FLEX', 'FLEX-2', 'SAME-R', 'ACME-CFI', 'ACME-CFI-G', 'SLICE', 'SPICE'):
             conditions.append("dataset_family = ?")
-            params.append(family)
+            params.append(fam_clean)
         else:
             conditions.append("(dataset_family = ? OR dataset_family LIKE ?)")
-            params.extend([family, f"{family}%"])
+            params.extend([fam_clean, f"{fam_clean}%"])
 
     if fuel and fuel.lower() != "all":
-        conditions.append("(fuel_material = ? OR fuel_material LIKE ?)")
-        params.extend([fuel, f"%{fuel}%"])
+        f_low = fuel.strip().lower()
+        if f_low == "methanol":
+            conditions.append("(fuel_material LIKE '%Methanol%' OR fuel_material LIKE '%Ethanol%')")
+        elif f_low == "heptane":
+            conditions.append("(fuel_material LIKE '%Heptane%' OR fuel_material LIKE '%Octane%' OR fuel_material LIKE '%Decane%')")
+        elif f_low == "pmma":
+            conditions.append("(fuel_material LIKE '%PMMA%' OR fuel_material LIKE '%Acrylic%' OR fuel_material LIKE '%clear rod%' OR fuel_material LIKE '%Delrin%')")
+        elif f_low == "cotton":
+            conditions.append("(fuel_material LIKE '%Cotton%' OR fuel_material LIKE '%SIBAL%' OR fuel_material LIKE '%Fabric%')")
+        elif f_low == "butane":
+            conditions.append("(fuel_material LIKE '%Butane%' OR fuel_material LIKE '%Methane%')")
+        elif f_low == "ethylene":
+            conditions.append("(fuel_material LIKE '%Ethylene%' OR fuel_material LIKE '%Propane%')")
+        elif f_low == "kapton":
+            conditions.append("(fuel_material LIKE '%Kapton%' OR fuel_material LIKE '%Polyimide%' OR fuel_material LIKE '%Teflon%' OR fuel_material LIKE '%PTFE%')")
+        elif f_low == "dust":
+            conditions.append("(fuel_material LIKE '%Dust%' OR fuel_material LIKE '%Regolith%' OR dataset_family LIKE 'DAFT%')")
+        else:
+            conditions.append("(fuel_material = ? OR fuel_material LIKE ?)")
+            params.extend([fuel, f"%{fuel}%"])
 
     if outcome and outcome.lower() != "all":
-        conditions.append("(extinction_outcome = ? OR extinction_outcome LIKE ?)")
-        params.extend([outcome, f"%{outcome}%"])
+        o_low = outcome.strip().lower()
+        if o_low == "radiative":
+            conditions.append("(extinction_outcome LIKE '%Radiative%' OR extinction_outcome = 'Extinction' OR extinction_outcome LIKE '%Quench%')")
+        elif o_low == "blowoff":
+            conditions.append("(extinction_outcome LIKE '%Blowoff%' OR extinction_outcome LIKE '%Blowout%' OR extinction_outcome LIKE '%Liftoff%')")
+        elif o_low == "complete":
+            conditions.append("(extinction_outcome LIKE '%Complete%' OR extinction_outcome LIKE '%Completion%' OR extinction_outcome LIKE '%Disruption%' OR extinction_outcome LIKE '%Burnout%')")
+        elif o_low == "sustained":
+            conditions.append("(extinction_outcome LIKE '%Sustain%' OR extinction_outcome LIKE '%Steady%' OR extinction_outcome LIKE '%Spread%')")
+        elif o_low == "cool flame":
+            conditions.append("extinction_outcome LIKE '%Cool Flame%'")
+        elif o_low == "smoke":
+            conditions.append("(extinction_outcome LIKE '%Smoke%' OR extinction_outcome LIKE '%Alarm%' OR extinction_outcome LIKE '%Detector%' OR extinction_outcome LIKE '%Aerosol%')")
+        else:
+            conditions.append("(extinction_outcome = ? OR extinction_outcome LIKE ?)")
+            params.extend([outcome, f"%{outcome}%"])
 
     if min_o2 is not None:
         conditions.append("oxygen_pct >= ?")
@@ -302,6 +474,7 @@ def query_experiments(
         "burn_time_s": "burn_time_s",
         "extinction_diameter_mm": "extinction_diameter_mm",
         "airflow_velocity_cms": "airflow_velocity_cms",
+        "extinction_outcome": "extinction_outcome",
         "co2_pct": "co2_pct",
         "he_pct": "he_pct",
         "facility_hardware": "facility_hardware"
@@ -314,12 +487,18 @@ def query_experiments(
     cursor.execute(count_sql, params)
     total_matches = cursor.fetchone()[0]
 
+    # Default sort prioritizes official PSI-verified families (FLEX, BASS-II, SAFFIRE-I) on Page 1
+    if sort_column == "experiment_id":
+        order_clause = f"CASE WHEN dataset_family IN ('FLEX', 'BASS-II', 'SAFFIRE-I') THEN 0 ELSE 1 END ASC, experiment_id {sort_direction}"
+    else:
+        order_clause = f"{sort_column} IS NULL ASC, {sort_column} {sort_direction}, experiment_id ASC"
+
     # Fetch paginated results
     offset = (page - 1) * limit
     data_sql = f"""
         SELECT * FROM canonical_experiments 
         WHERE {where_clause} 
-        ORDER BY {sort_column} {sort_direction} 
+        ORDER BY {order_clause} 
         LIMIT ? OFFSET ?
     """
     cursor.execute(data_sql, params + [limit, offset])
@@ -347,24 +526,67 @@ def get_experiment_by_id(experiment_id: str) -> Optional[Dict[str, Any]]:
 
 
 def compare_experiments(experiment_ids: List[str]) -> Dict[str, Any]:
-    """Perform side-by-side metric comparison for 2 to 4 experiments."""
+    """Perform side-by-side metric comparison and variable invariance analysis for 2 to 4 experiments."""
     if not experiment_ids:
-        return {"experiments": [], "metrics": {}}
+        return {"experiments": [], "metrics": {}, "parameter_invariance": {}}
 
     conn = get_db_connection()
     cursor = conn.cursor()
     placeholders = ",".join(["?"] * len(experiment_ids))
     cursor.execute(f"SELECT * FROM canonical_experiments WHERE experiment_id IN ({placeholders})", experiment_ids)
-    rows = [_with_provenance(dict(r)) for r in cursor.fetchall()]
+    fetched = {r["experiment_id"]: _with_provenance(dict(r)) for r in cursor.fetchall()}
     conn.close()
 
+    rows = [fetched[eid] for eid in experiment_ids if eid in fetched]
     if not rows:
-        return {"experiments": [], "metrics": {}}
+        rows = list(fetched.values())
+    if not rows:
+        return {"experiments": [], "metrics": {}, "parameter_invariance": {}}
 
     # Calculate comparative statistics
     o2_values = [r["oxygen_pct"] for r in rows if r.get("oxygen_pct") is not None]
+    pres_values = [r["pressure_kpa"] for r in rows if r.get("pressure_kpa") is not None]
+    flow_values = [r["airflow_velocity_cms"] for r in rows if r.get("airflow_velocity_cms") is not None]
     burn_times = [r["burn_time_s"] for r in rows if r.get("burn_time_s") is not None]
     de_values = [r["extinction_diameter_mm"] for r in rows if r.get("extinction_diameter_mm") is not None]
+
+    # Parameter invariance analysis ("how tests differed and how they stayed the same")
+    tracked_fields = [
+        ("dataset_family", "Investigation Suite", "Tədqiqat Ailəsi", ""),
+        ("facility_hardware", "ISS Facility / Hardware", "BKS Qurğusu", ""),
+        ("fuel_material", "Fuel / Material", "Yanacaq / Material", ""),
+        ("oxygen_pct", "Oxygen Concentration", "Oksigen Qatılığı", "%"),
+        ("pressure_kpa", "Chamber Pressure", "Kamera Təzyiqi", " kPa"),
+        ("airflow_velocity_cms", "Forced Airflow Velocity", "Hava Axını Sürəti", " cm/s"),
+        ("extinction_outcome", "Extinction Regime", "Sönmə Nəticəsi", ""),
+    ]
+    constant_params = []
+    varying_params = []
+    for col, label_en, label_az, unit in tracked_fields:
+        vals = [r.get(col) for r in rows]
+        non_null = [v for v in vals if v is not None and str(v).strip() != ""]
+        if not non_null:
+            continue
+        unique_vals = list(dict.fromkeys(str(round(v, 2) if isinstance(v, float) else v) for v in non_null))
+        if len(unique_vals) == 1 and len(non_null) == len(rows):
+            constant_params.append({
+                "field": col,
+                "label_en": label_en,
+                "label_az": label_az,
+                "value": f"{unique_vals[0]}{unit}",
+            })
+        else:
+            varying_params.append({
+                "field": col,
+                "label_en": label_en,
+                "label_az": label_az,
+                "values": [f"{round(v, 2) if isinstance(v, float) else (v if v is not None else '—')}{unit if v is not None else ''}" for v in vals],
+            })
+
+    same_en = ", ".join(f"{p['label_en']} ({p['value']})" for p in constant_params) or "None (all primary boundary conditions differed across selected runs)"
+    same_az = ", ".join(f"{p['label_az']} ({p['value']})" for p in constant_params) or "Yoxdur (seçilmiş sınaqlarda bütün əsas sərhəd şərtləri fərqlənir)"
+    diff_en = "; ".join(f"{p['label_en']}: {' vs. '.join(p['values'])}" for p in varying_params) or "Identical boundary conditions"
+    diff_az = "; ".join(f"{p['label_az']}: {' vs. '.join(p['values'])}" for p in varying_params) or "Eyni sərhəd şərtləri"
 
     return {
         "experiments": rows,
@@ -372,21 +594,37 @@ def compare_experiments(experiment_ids: List[str]) -> Dict[str, Any]:
             "count": len(rows),
             "max_o2": max(o2_values) if o2_values else None,
             "min_o2": min(o2_values) if o2_values else None,
+            "max_pressure": max(pres_values) if pres_values else None,
+            "min_pressure": min(pres_values) if pres_values else None,
+            "max_airflow": max(flow_values) if flow_values else None,
+            "min_airflow": min(flow_values) if flow_values else None,
             "max_burn_time": max(burn_times) if burn_times else None,
             "min_burn_time": min(burn_times) if burn_times else None,
             "max_de": max(de_values) if de_values else None,
             "min_de": min(de_values) if de_values else None
+        },
+        "parameter_invariance": {
+            "constant_parameters": constant_params,
+            "varying_parameters": varying_params,
+            "what_stayed_same_en": same_en,
+            "what_stayed_same_az": same_az,
+            "how_tests_differed_en": diff_en,
+            "how_tests_differed_az": diff_az,
         }
     }
 
 
-def get_investigation_rankings(environment_id: str = "lunar_habitat") -> Dict[str, Any]:
+def get_investigation_rankings(
+    environment_id: str = "lunar_habitat",
+    custom_o2: Optional[float] = None,
+    custom_pressure: Optional[float] = None,
+    custom_gravity: Optional[float] = None,
+) -> Dict[str, Any]:
     """
-    SI Investigation Ranking Engine:
+    Dynamic SI Investigation Ranking Engine:
     Ranks all NASA PSI microgravity and 1g-bounding combustion investigations by scientific relevance
-    (0–100%) for a selected mission environment (Space Station /ISS, Spacecraft Capsule, Lunar Base 0.16g,
-    Martian Base 0.38g, Pressurized Rover >=30% O2 <=10.2 psi, EVA Spacesuit 85-100% O2).
-    Also computes the 0g–1g Partial-Gravity Bounding Envelope (pending LUCI & FM2).
+    (0–100%) for a selected mission environment or custom atmospheric/gravity regime, backed by live
+    SQLite experiment counts from canonical_experiments.
     """
     env_key = (environment_id or "lunar_habitat").lower()
     if env_key in ("space_station", "iss"):
@@ -403,81 +641,104 @@ def get_investigation_rankings(environment_id: str = "lunar_habitat") -> Dict[st
         env_key = "eva_suit"
     elif env_key in ("lunar_hypoxic", "hypoxic"):
         env_key = "lunar_hypoxic"
+    elif env_key == "custom":
+        env_key = "custom"
     else:
         env_key = "lunar_habitat"
 
-    # Base investigation catalog with facility hardware, sensors, and environment-specific relevance scores
+    # Query live DB record counts per family so ranking metadata reflects real SQLite holdings
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT dataset_family, COUNT(*) as cnt FROM canonical_experiments GROUP BY dataset_family")
+    fam_counts = {r["dataset_family"]: r["cnt"] for r in cur.fetchall()}
+    conn.close()
+
+    def _sum_fams(fams: List[str]) -> int:
+        return sum(fam_counts.get(f, 0) for f in fams)
+
     # Strictly the 6 official NASA Space Apps Challenge ("Flame in Freefall") investigation groups
     catalog = [
         {
             "investigation": "SAFFIRE-I, -II & -III",
             "psi_id": "PSI-98 / Cygnus",
+            "families": ["SAFFIRE-I", "SAFFIRE-II", "SAFFIRE-III"],
+            "psi_verified_count": fam_counts.get("SAFFIRE-I", 2),
             "facility": "Cygnus Autonomous Spacecraft (Large-Scale Flow Duct)",
             "fuel_geometry": "Large-scale 0.4×0.94 m SIBAL cotton-fiberglass & PMMA samples (9 samples in SAFFIRE-II)",
             "diagnostics": "Thermocouple arrays, radiometers, O2/CO2/CO cabin sensors, high-res video",
             "objective_en": "Large-scale spacecraft fire propagation, oxygen limit testing, and cabin pressure response aboard autonomous Cygnus vehicles.",
             "objective_az": "Avtonom Cygnus kosmik gəmisində iri miqyaslı alov yayılması, oksigen həddi sınaqları və kabin təzyiqi reaksiyasının tədqiqi.",
-            "scores": {"iss": 95, "spacecraft": 99, "lunar_habitat": 98, "mars_habitat": 95, "rover": 94, "eva_suit": 72},
+            "scores": {"iss": 95, "spacecraft": 99, "lunar_habitat": 98, "mars_habitat": 95, "rover": 94, "eva_suit": 72, "custom": 94},
             "rationale_en": "Directly demonstrates large-scale spacecraft fire propagation and oxygen consumption limits aboard an actual flight vehicle.",
             "rationale_az": "Real kosmik gəmidə iri miqyaslı yanğın yayılmasını və oksigen sərfiyyatı hədlərini birbaşa nümayiş etdirir."
         },
         {
             "investigation": "BASS & BASS-II",
             "psi_id": "PSI-25 / MSG",
+            "families": ["BASS-I", "BASS-II"],
+            "psi_verified_count": fam_counts.get("BASS-II", 104),
             "facility": "ISS MSG (Microgravity Science Glovebox — SPICE Flow Duct)",
             "fuel_geometry": "Flat fabrics (SIBAL), PMMA slabs, rods, and spheres under forced flow (0–55 cm/s)",
             "diagnostics": "Hot-wire anemometer, radiometer, still/video cameras, exhaust gas analysis",
             "objective_en": "Solid fuel ignition, concurrent/opposed flame spread, and extinction limits as a function of low-velocity ventilation airflow.",
             "objective_az": "Aşağı sürətli ventilyasiya axınında (0–55 sm/s) bərk materialların alovlanması, yayılması və sönmə hədlərinin təyini.",
-            "scores": {"iss": 97, "spacecraft": 94, "lunar_habitat": 96, "mars_habitat": 95, "rover": 92, "eva_suit": 78},
-            "rationale_en": "Demonstrates that forced convective flow (5–15 cm/s) in microgravity mimics buoyant drafts (0.16g Moon ~ 12 cm/s, 0.38g Mars ~ 18 cm/s) and lowers MOC below 1g!",
-            "rationale_az": "Mikroyerçəkimdə 5–15 sm/s məcburi hava axınının Ay (0.16g ~ 12 sm/s) və Mars (0.38g ~ 18 sm/s) konveksiyasını təqlid etdiyini və minimal O2 həddini 1g-dən aşağı saldığını göstərir."
+            "scores": {"iss": 97, "spacecraft": 94, "lunar_habitat": 96, "mars_habitat": 98, "rover": 93, "eva_suit": 78, "custom": 95},
+            "rationale_en": "Demonstrates that forced convective flow (5–18 cm/s) in microgravity mimics buoyant drafts (0.16g Moon ~ 12.2 cm/s, 0.38g Mars ~ 18.8 cm/s) and lowers MOC below 1g!",
+            "rationale_az": "Mikroyerçəkimdə 5–18 sm/s məcburi hava axınının Ay (0.16g ~ 12.2 sm/s) və Mars (0.38g ~ 18.8 sm/s) konveksiyasını təqlid etdiyini və minimal O2 həddini 1g-dən aşağı saldığını göstərir."
         },
         {
             "investigation": "SAME, SAME-R, DAFT & DAFT-2",
             "psi_id": "PSI-SAME / PSI-DAFT",
+            "families": ["SAME", "SAME (Aerosol)", "SAME-R", "DAFT / DAFT-2"],
+            "psi_verified_count": 0,
             "facility": "ISS MSG (Microgravity Science Glovebox — Enclosed Aerosol Chamber)",
             "fuel_geometry": "Overheated wire insulation (Kapton, Teflon, Silicone, Cellulose) + Lunar/Martian dust simulants",
             "diagnostics": "3-channel PAMS aerosol monitor, ionization & photoelectric ISS smoke detectors, thermal precipitator TEM",
             "objective_en": "Characterize microgravity smoke particle size distribution, aging/aggregation, and discriminate planetary regolith dust from real fire smoke.",
             "objective_az": "Mikroyerçəkimdə tüstü hissəciklərinin ölçüsünü, koaqulyasiyasını təyin etmək və Ay/Mars tozunu real yanğın tüstüsündən fərqləndirmək.",
-            "scores": {"iss": 94, "spacecraft": 91, "lunar_habitat": 97, "mars_habitat": 97, "rover": 98, "eva_suit": 75},
-            "rationale_en": "Highest priority for Lunar Base, Martian Base, and Pressurized Rovers where crew EVA suits bring fine regolith dust indoors that can cause nuisance alarms.",
-            "rationale_az": "Ay/Mars bazaları və Təzyiqli Roverlər üçün ən kritik tədqiqatdır — skafandrlardan kabinə daxil olan reqolit tozunun tüstü detektorlarında yalançı həyəcan verməsinin qarşısını alır."
+            "scores": {"iss": 94, "spacecraft": 91, "lunar_habitat": 97, "mars_habitat": 97, "rover": 98, "eva_suit": 75, "custom": 90},
+            "rationale_en": "Highest priority for Lunar Base, Martian Base, and Pressurized Rovers where crew EVA suits bring fine regolith dust indoors that can cause nuisance alarms (as seen during the Artemis II smoke alarm event ~80,000 miles from Earth).",
+            "rationale_az": "Ay/Mars bazaları və Təzyiqli Roverlər üçün ən kritik tədqiqatdır — skafandrlardan kabinə daxil olan reqolit tozunun tüstü detektorlarında yalançı həyəcan verməsinin qarşısını alır (Artemis II missiyasında Yerdən ~80,000 mil məsafədə baş verən tüstü siqnalı hadisəsi kimi)."
         },
         {
             "investigation": "FLEX, FLEX-2 & CFI",
             "psi_id": "PSI-69 / PSI-70",
+            "families": ["FLEX", "FLEX-2", "ACME-CFI"],
+            "psi_verified_count": fam_counts.get("FLEX", 301),
             "facility": "ISS CIR (MDCA Multi-user Droplet Combustion Apparatus)",
             "fuel_geometry": "Isolated spherical liquid droplets (1.5–5.0 mm: n-Heptane, Methanol, Ethanol, Decane)",
             "diagnostics": "Backlit strobe microscopy, UV/IR radiometers, LLUV low-light cameras, O2/CO2/He gas manifold",
             "objective_en": "Spherical droplet burning rates, radiative quenching (d_e), cool-flame two-stage chemistry (600–800 K), and CO2 (up to 70%) / He (up to 45%) fire suppression.",
             "objective_az": "Kürəvi damcı yanma sürəti, radiativ sönmə (d_e), soyuq alov (600–800 K) kimyası və CO2 (70%-dək) / He (45%-dək) qazları ilə yanğınsöndürmə.",
-            "scores": {"iss": 96, "spacecraft": 89, "lunar_habitat": 86, "mars_habitat": 90, "rover": 82, "eva_suit": 70},
+            "scores": {"iss": 96, "spacecraft": 89, "lunar_habitat": 86, "mars_habitat": 90, "rover": 82, "eva_suit": 70, "custom": 91},
             "rationale_en": "Provides exact CO2 (up to 70%) and Helium (up to 45%) inert-gas dilution extinguishing limits for ISS CO2 extinguishers and exploration suppression systems.",
             "rationale_az": "BKS-dəki CO2 balonları və kəşfiyyat yanğınsöndürmə sistemləri üçün dəqiq CO2 (70%-dək) və Helium (45%-dək) sönmə hədlərini verir."
         },
         {
             "investigation": "ACME Suite (BRE, CFI-G, E-FIELD, CLD, s-Flame)",
             "psi_id": "PSI-112 / CIR",
+            "families": ["ACME (CIR)", "ACME-BRE", "ACME-CFI-G", "ACME-CLD", "ACME-EFIELD"],
+            "psi_verified_count": 0,
             "facility": "ISS CIR (ACME Modular Gas Burner Hardware)",
             "fuel_geometry": "Porous flat plug (BRE), spherical porous burner (CFI-G up to 85% O2), coflow nozzle (E-FIELD/CLD)",
             "diagnostics": "OH*/CH* chemiluminescence, intensified CCD, +5 kV electric field mesh, radiometers, thermophoretic soot samplers",
             "objective_en": "Simulating solid material flammability via gas burner (BRE), inside-out flames up to 85% O2 (CFI-G), and electric-field partial-gravity mimicry (E-FIELD).",
             "objective_az": "Qaz brülörü ilə bərk material yanıcılığının simulyasiyası (BRE), 85% O2-də tərs alovlar (CFI-G) və elektrik sahəsi ilə qismən cazibə təqlidi (E-FIELD).",
-            "scores": {"iss": 92, "spacecraft": 90, "lunar_habitat": 95, "mars_habitat": 94, "rover": 95, "eva_suit": 99},
+            "scores": {"iss": 92, "spacecraft": 90, "lunar_habitat": 95, "mars_habitat": 94, "rover": 95, "eva_suit": 99, "custom": 92},
             "rationale_en": "ACME BRE simulates solid material flammability, CFI-G tested up to 85% O2 (highest in space — critical for ≥30% O2 rovers & EVA suits), and E-FIELD mimicked partial gravity via electric field!",
             "rationale_az": "ACME BRE bərk materialların yanıcılığını simulyasiya edir, CFI-G kosmosda ən yüksək 85% O2 həddini sınaqdan keçirib (rover və EVA skafandrı üçün kritik), E-FIELD isə elektrik sahəsi ilə qismən cazibəni təqlid edib!"
         },
         {
             "investigation": "SPICE & SLICE",
             "psi_id": "PSI-SPICE / PSI-SLICE",
+            "families": ["SPICE", "SLICE"],
+            "psi_verified_count": 0,
             "facility": "ISS MSG (Microgravity Science Glovebox — SPICE Flow Duct)",
             "fuel_geometry": "Circular nozzles (1.6–4.0 mm) issuing laminar gas jets (CH4, C2H4, C3H8) in co-flowing air",
             "diagnostics": "Color still/video cameras, radiometers, thermocouple rakes, hot-wire anemometer",
             "objective_en": "Laminar diffusion flame liftoff, blowout limits, and soot smoke-point transitions in forced co-flow using the MSG flow duct also shared with BASS.",
             "objective_az": "BASS ilə ortaq istifadə edilən MSG axın kanalında laminar diffuziya alovunun qopması (liftoff), sönməsi və his nöqtəsi (smoke point) keçidləri.",
-            "scores": {"iss": 88, "spacecraft": 84, "lunar_habitat": 83, "mars_habitat": 84, "rover": 81, "eva_suit": 68},
+            "scores": {"iss": 88, "spacecraft": 84, "lunar_habitat": 83, "mars_habitat": 84, "rover": 81, "eva_suit": 68, "custom": 85},
             "rationale_en": "Establishes soot radiative loss fractions and convective blowout velocities in the modular MSG fan-driven flow duct.",
             "rationale_az": "Modulyar MSG ventilyatorlu axın kanalında his radiasiya itkilərini və konvektiv üfürülmə (blowout) sürətlərini müəyyən edir."
         }
@@ -485,13 +746,45 @@ def get_investigation_rankings(environment_id: str = "lunar_habitat") -> Dict[st
 
     ranked = []
     for item in catalog:
-        score = item["scores"].get(env_key, 85)
+        base_score = item["scores"].get(env_key, 88)
+        # Dynamic physical adjustments when custom O2, pressure, or gravity are supplied
+        adj = 0.0
+        inv_name = item["investigation"]
+        if custom_o2 is not None:
+            if custom_o2 >= 45.0:
+                if "ACME" in inv_name:
+                    adj += min(10.0, (custom_o2 - 35.0) * 0.25)
+                elif "BASS" in inv_name:
+                    adj -= min(10.0, (custom_o2 - 40.0) * 0.2)
+                elif "SAFFIRE" in inv_name or "FLEX" in inv_name:
+                    adj -= min(12.0, (custom_o2 - 40.0) * 0.22)
+            elif custom_o2 <= 22.0:
+                if "FLEX" in inv_name or "BASS" in inv_name:
+                    adj += 4.0
+            elif 28.0 <= custom_o2 <= 38.0:
+                if "SAFFIRE" in inv_name or "BASS" in inv_name:
+                    adj += 4.0
+        if custom_pressure is not None:
+            if custom_pressure <= 45.0 and "ACME" in inv_name:
+                adj += 4.0
+            elif 50.0 <= custom_pressure <= 75.0 and ("SAFFIRE" in inv_name or "SAME" in inv_name):
+                adj += 3.0
+        if custom_gravity is not None:
+            if 0.08 <= custom_gravity <= 0.45 and ("BASS" in inv_name or "SAME" in inv_name):
+                adj += 4.0
+            elif custom_gravity < 0.05 and ("FLEX" in inv_name or "SAFFIRE" in inv_name):
+                adj += 3.0
+
+        score = int(min(99, max(60, round(base_score + adj))))
+        total_recs = _sum_fams(item["families"])
         ranked.append({
             "investigation": item["investigation"],
             "psi_id": item["psi_id"],
             "facility": item["facility"],
             "fuel_geometry": item["fuel_geometry"],
             "diagnostics": item["diagnostics"],
+            "matching_records": total_recs,
+            "psi_verified_records": item["psi_verified_count"],
             "relevance_score": score,
             "tier": "TIER 1 — CRITICAL PRIMARY" if score >= 93 else ("TIER 2 — HIGH SUPPORTING" if score >= 85 else "TIER 3 — BASELINE BOUNDING"),
             "objective_en": item["objective_en"],
@@ -500,7 +793,7 @@ def get_investigation_rankings(environment_id: str = "lunar_habitat") -> Dict[st
             "rationale_az": item["rationale_az"]
         })
 
-    ranked.sort(key=lambda x: x["relevance_score"], reverse=True)
+    ranked.sort(key=lambda x: (x["relevance_score"], x["psi_verified_records"], x["matching_records"]), reverse=True)
     for idx, r in enumerate(ranked, 1):
         r["rank"] = idx
 
@@ -514,7 +807,18 @@ def get_investigation_rankings(environment_id: str = "lunar_habitat") -> Dict[st
         "eva_suit": {"g_level": 0.16, "label": "EVA Suitlock / Surface (0.0g–0.16g)", "eq_buoyant_flow_cms": 8.5, "moc_pmma_pct": 13.5},
         "lunar_hypoxic": {"g_level": 0.16, "label": "Hypoxic Safe-Haven (0.16g)", "eq_buoyant_flow_cms": 12.2, "moc_pmma_pct": 14.8}
     }
-    g_info = gravity_map.get(env_key, gravity_map["lunar_habitat"])
+    if custom_gravity is not None:
+        g_val = max(0.0, min(1.0, float(custom_gravity)))
+        eq_flow = round(30.5 * math.sqrt(g_val), 1)
+        moc_val = round(17.5 - 2.7 * math.exp(-((g_val - 0.16) / 0.22) ** 2), 1) if g_val > 0.01 else 17.5
+        g_info = {
+            "g_level": g_val,
+            "label": f"Custom Gravity Regime ({g_val:.2f}g)",
+            "eq_buoyant_flow_cms": eq_flow,
+            "moc_pmma_pct": moc_val,
+        }
+    else:
+        g_info = gravity_map.get(env_key, gravity_map["lunar_habitat"])
 
     return {
         "environment_id": env_key,
@@ -552,11 +856,17 @@ def get_investigation_rankings(environment_id: str = "lunar_habitat") -> Dict[st
     }
 
 
-def calculate_mission_scenario(scenario_id: str, custom_o2: Optional[float] = None, custom_pressure: Optional[float] = None) -> Dict[str, Any]:
+def calculate_mission_scenario(
+    scenario_id: str,
+    custom_o2: Optional[float] = None,
+    custom_pressure: Optional[float] = None,
+    custom_gravity: Optional[float] = None,
+    material_factor: Optional[float] = None,
+) -> Dict[str, Any]:
     """
     Simulates atmospheric fire hazard metrics for predefined and custom planetary spaceflight environments.
     Includes Spacecraft, Space Station (ISS), Lunar Base (0.16g), Martian Base (0.38g),
-    Pressurized Rover (>=30% O2, <=10.2 psia), EVA Spacesuit (85-100% O2, 4.3 psia), and Hypoxic Safe-Haven.
+    Pressurized Rover (>=30% O2, <=10.2 psia), EVA Spacesuit (85-100% O2, 4.3 psia), and Custom Chamber.
     """
     scenarios = {
         "iss": {
@@ -603,8 +913,8 @@ def calculate_mission_scenario(scenario_id: str, custom_o2: Optional[float] = No
             "pressure_kpa": 56.5,
             "pressure_psia": 8.2,
             "gravity_g": 0.38,
-            "description_en": "Martian surface habitat (0.38g, 34% O2 at 56.5 kPa) where stronger buoyant plumes (~18.8 cm/s) accelerate upward flame spread; local CO2 atmosphere available for suppression.",
-            "description_az": "Mars səth bazası (0.38g, 34% O2, 56.5 kPa) — güclü konvektiv axın (~18.8 sm/s) yuxarı alov yayılmasını sürətləndirir; söndürmə üçün yerli CO2 atmosferi mövcuddur.",
+            "description_en": "Martian surface habitat (0.38g, 34% O2 at 56.5 kPa) where stronger buoyant plumes (~18.8 cm/s) pass the low-flow flammability dip peak and introduce convective cooling; local CO2 atmosphere available for suppression.",
+            "description_az": "Mars səth bazası (0.38g, 34% O2, 56.5 kPa) — daha güclü konvektiv axın (~18.8 sm/s) 0.16g Ay pikini keçərək qismən konvektiv soyutma yaradır; söndürmə üçün yerli CO2 atmosferi mövcuddur.",
             "baseline_risk": "ELEVATED"
         },
         "rover": {
@@ -636,6 +946,7 @@ def calculate_mission_scenario(scenario_id: str, custom_o2: Optional[float] = No
     if scenario_id == "custom":
         o2 = custom_o2 if custom_o2 is not None else 21.0
         pres = custom_pressure if custom_pressure is not None else 101.3
+        grav = custom_gravity if custom_gravity is not None else 0.0
         scenario_data = {
             "id": "custom",
             "name_en": "Custom Spacecraft Atmosphere",
@@ -643,22 +954,29 @@ def calculate_mission_scenario(scenario_id: str, custom_o2: Optional[float] = No
             "oxygen_pct": o2,
             "pressure_kpa": pres,
             "pressure_psia": round(pres * 0.145038, 2),
-            "gravity_g": 0.0,
-            "description_en": "Custom user-defined environmental chamber parameters (supports up to 100% O2 including ACME CFI-G 85% O2 and EVA suit regimes).",
-            "description_az": "İstifadəçi tərəfindən təyin edilmiş xüsusi atmosfer kamerası parametrləri (ACME CFI-G 85% O2 və 100% O2 EVA skafandr rejimini dəstəkləyir).",
+            "gravity_g": grav,
+            "description_en": "Custom user-defined environmental chamber parameters (supports up to 100% O2 including ACME CFI-G 85% O2, partial gravity 0.0g–1.0g, and material flammability factors).",
+            "description_az": "İstifadəçi tərəfindən təyin edilmiş xüsusi atmosfer kamerası parametrləri (ACME CFI-G 85% O2, 0.0g–1.0g cazibə və material yanarlıq əmsallarını dəstəkləyir).",
             "baseline_risk": "CUSTOM"
         }
     else:
-        scenario_data = scenarios.get(scenario_id, scenarios["iss"])
-        o2 = scenario_data["oxygen_pct"]
-        pres = scenario_data["pressure_kpa"]
+        scenario_data = dict(scenarios.get(scenario_id, scenarios["iss"]))
+        o2 = custom_o2 if custom_o2 is not None else scenario_data["oxygen_pct"]
+        pres = custom_pressure if custom_pressure is not None else scenario_data["pressure_kpa"]
+        grav = custom_gravity if custom_gravity is not None else scenario_data["gravity_g"]
+        scenario_data["oxygen_pct"] = o2
+        scenario_data["pressure_kpa"] = pres
+        scenario_data["pressure_psia"] = round(pres * 0.145038, 2)
+        scenario_data["gravity_g"] = grav
 
     po2_kpa = (o2 / 100.0) * pres
     x_o2 = o2 / 100.0
     oef = (x_o2 / 0.21) ** 1.5
     pf  = (pres / 101.3) ** 0.4
-    mf  = 1.0
-    fhi_raw = 5.1 * oef * pf * mf
+    mf  = max(0.3, min(1.5, float(material_factor))) if material_factor is not None else 1.0
+    # Partial-gravity convective enhancement factor (peaks near 0.16g Lunar ~12.2 cm/s low-flow dip; cools slightly by 0.38g Mars ~18.8 cm/s)
+    gf  = 1.0 + 0.12 * math.exp(-((grav - 0.16) / 0.18) ** 2) if grav > 0.01 else 1.0
+    fhi_raw = 5.1 * oef * pf * mf * gf
     fhi = min(10.0, max(0.5, round(fhi_raw, 1)))
 
     if fhi < 3.5:
@@ -679,10 +997,16 @@ def calculate_mission_scenario(scenario_id: str, custom_o2: Optional[float] = No
         status_color = "#EF4444"
 
     projected_de_mm = max(0.45, round(2.85 * math.exp(-0.038 * o2), 3))
-    burn_rate_multiplier = round((o2 / 21.0) ** 1.35 * (pres / 101.3) ** 0.25, 2)
-    required_n2_purge_pct = round(max(0.0, (o2 - 14.5) * 1.8), 1)
+    burn_rate_multiplier = round((o2 / 21.0) ** 1.35 * (pres / 101.3) ** 0.25 * gf * (mf ** 0.5), 2)
+    # Physical dilution fraction required to reduce cabin O2 mole fraction to 14.5% LOC: V_N2 / V_total = 1 - (14.5 / O2)
+    required_n2_purge_pct = round(max(0.0, min(92.0, 100.0 * (1.0 - 14.5 / max(o2, 14.5)))), 1) if o2 > 14.5 else 0.0
 
-    ranking_bundle = get_investigation_rankings(scenario_data["id"])
+    ranking_bundle = get_investigation_rankings(
+        scenario_data["id"],
+        custom_o2=o2 if scenario_id == "custom" else None,
+        custom_pressure=pres if scenario_id == "custom" else None,
+        custom_gravity=grav if (scenario_id == "custom" or custom_gravity is not None) else None,
+    )
 
     return {
         "scenario": scenario_data,
@@ -693,6 +1017,8 @@ def calculate_mission_scenario(scenario_id: str, custom_o2: Optional[float] = No
         "metrics": {
             "oxygen_pct": o2,
             "pressure_kpa": pres,
+            "gravity_g": grav,
+            "material_factor": round(mf, 2),
             "oxygen_partial_pressure_kpa": round(po2_kpa, 2),
             "projected_extinction_diameter_mm": projected_de_mm,
             "burn_rate_multiplier": burn_rate_multiplier,
@@ -701,14 +1027,14 @@ def calculate_mission_scenario(scenario_id: str, custom_o2: Optional[float] = No
         "investigation_rankings": ranking_bundle["rankings"],
         "partial_gravity_bounding": ranking_bundle["partial_gravity_bounding"],
         "advisory_en": (
-            f"Under {o2}% O2 at {pres} kPa ({scenario_data['pressure_psia']} psia), flame propagation velocity is {burn_rate_multiplier}x baseline "
-            f"and droplet extinction diameter drops to {projected_de_mm} mm. "
+            f"Under {o2}% O2 at {pres} kPa ({scenario_data['pressure_psia']} psia, {grav}g, Mf={mf:.2f}), flame propagation velocity is {burn_rate_multiplier}x baseline "
+            f"and droplet extinction diameter drops to {projected_de_mm} mm (inert N2 dilution to reach 14.5% O2 LOC: {required_n2_purge_pct}%). "
             f"Top-ranked NASA PSI reference: {ranking_bundle['rankings'][0]['investigation']} ({ranking_bundle['rankings'][0]['relevance_score']}% match). "
             f"Partial-gravity risk is bounded between 0g ISS forced-flow data and 1.0g NASA-STD-6001 Test 1."
         ),
         "advisory_az": (
-            f"{pres} kPa ({scenario_data['pressure_psia']} psia) təzyiqdə və {o2}% O2 mühitində alovun yayılma sürəti baza rejimindən {burn_rate_multiplier}x dəfə çoxdur, "
-            f"sönmə diametri isə {projected_de_mm} mm-ə enir. "
+            f"{pres} kPa ({scenario_data['pressure_psia']} psia, {grav}g, Mf={mf:.2f}) təzyiqdə və {o2}% O2 mühitində alovun yayılma sürəti baza rejimindən {burn_rate_multiplier}x dəfə çoxdur, "
+            f"sönmə diametri isə {projected_de_mm} mm-ə enir (14.5% O2 həddinə endirmək üçün tələb olunan N2 seyreltmə həcmi: {required_n2_purge_pct}%). "
             f"Ən uyğun NASA PSI tədqiqatı: {ranking_bundle['rankings'][0]['investigation']} ({ranking_bundle['rankings'][0]['relevance_score']}% uyğunluq). "
             f"Qismən cazibə riski 0g BKS məcburi axın datası ilə 1.0g NASA-STD-6001 Test 1 arasında hüdudlanır."
         )

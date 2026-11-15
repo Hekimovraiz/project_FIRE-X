@@ -1144,9 +1144,9 @@
           <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--neon-cyan);margin-bottom:8px;">
             FIRE-X Scientific Research Assistant Online
           </div>
-          Welcome to the NASA Microgravity Combustion Intelligence Console. Powered by <strong>OpenAI GPT-4o-mini + Live SQLite SQL-RAG</strong> and grounded in <strong>892 verified flight &amp; ground-bound experiments</strong> across 29 investigation suites (CIR, MSG, Cygnus, ZGF, WSTF).
+          Welcome to the NASA Microgravity Combustion Intelligence Console. Powered by <strong>OpenAI GPT-4o-mini + Live SQLite SQL-RAG</strong> and grounded in <strong>569 canonical records (407 row-level NASA PSI measurements + 162 clearly labelled illustrative values)</strong> across 18 investigation suites (ISS CIR, ISS MSG, Cygnus).
           <br><br>
-          Ask about SI Investigation Relevance Rankings (Spacecraft, ISS, Lunar Base, Martian Base, Rover, EVA Suit), 0g–1g Partial-Gravity Bounding (ACME E-FIELD / pre-LUCI &amp; FM2), FLEX He/CO₂ diluents, ACME CFI-G 85% O₂ flames, or 3-Tier Fire Safety Equipment (Prevention, Detection, Suppression).
+          Ask about SI Investigation Relevance Rankings (Spacecraft, ISS, Lunar Base, Martian Base, Rover, EVA Suit), 0g–1g Partial-Gravity Bounding (ACME E-FIELD / pre-LUCI &amp; FM2), FLEX He/CO₂ diluents, ACME CFI-G 85% O₂ flames, Artemis II smoke alarm lessons, or 3-Tier Fire Safety Equipment (Prevention, Detection, Suppression).
           <div class="msg-meta-bar">
             <span>NASA PHYSICAL SCIENCE INFORMATICS // LIVE SQL-RAG GROUND TRUTH</span>
             <span>SYSTEM READY</span>
@@ -1421,10 +1421,18 @@
     setTimeout(update, ms + 50);
   });
 
+  function isLocalNetworkHost() {
+    const h = window.location.hostname || '';
+    return h === 'localhost' || h === '127.0.0.1' || h.startsWith('192.168.') || h.startsWith('10.') || /^172\.(1[6-9]|2\d|3[0-1])\./.test(h);
+  }
+
   function init() {
     mount();
-    poll();
-    setInterval(poll, POLL_MS);
+    // Only poll physical ESP32 sensor state automatically on local LAN/localhost to avoid serverless quota drain on cloud deployments
+    if (isLocalNetworkHost()) {
+      poll();
+      setInterval(poll, POLL_MS);
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

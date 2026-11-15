@@ -195,10 +195,15 @@ def retrieve_sql_rag_context(user_message: str) -> Dict[str, Any]:
     filter_descriptions = []
 
     # 1. Check for exact experiment ID pattern (e.g., FLEX-001, ACME-CFI-047, SAFFIRE-01)
-    exp_prefixes = ("FLEX", "BASS", "SAFFIRE", "ACME", "SLICE", "SPICE", "SAME", "DAFT", "NASA")
+    suite_names = {
+        "FLEX-2", "BASS-I", "BASS-II", "BASS-1", "BASS-2",
+        "SAFFIRE-I", "SAFFIRE-II", "SAFFIRE-III", "SAFFIRE-1", "SAFFIRE-2", "SAFFIRE-3",
+        "SAME-R", "DAFT-2", "ACME-BRE", "ACME-CFI", "ACME-CFI-G", "ACME-CLD", "ACME-EFIELD", "E-FIELD"
+    }
+    exp_prefixes = ("FLEX", "BASS", "SAFFIRE", "SAF1", "ACME", "SLICE", "SPICE", "SAME", "DAFT", "NASA")
     matched_exp_ids = [
-        tok for tok in re.findall(r'\b[A-Z0-9]+(?:-[A-Z0-9]+)+\b', (user_message or "").upper())
-        if any(tok.startswith(p) for p in exp_prefixes)
+        tok for tok in re.findall(r'\b[A-Z0-9]+(?:[-/][A-Z0-9]+)+\b', (user_message or "").upper())
+        if any(tok.startswith(p) for p in exp_prefixes) and tok not in suite_names
     ]
     if matched_exp_ids:
         placeholders = " OR ".join(["UPPER(experiment_id) LIKE ?" for _ in matched_exp_ids])
@@ -430,6 +435,20 @@ def generate_scientific_fallback(user_message: str, language: str = "en", page_c
     q = user_message.lower()
     is_az = language.lower().startswith("az")
     rag_md = ""  # Raw tabular dump omitted for a clean response format
+
+    from backend.citation_rag_engine import is_out_of_scope_query
+    if is_out_of_scope_query(q):
+        if is_az:
+            return (
+                "⚠️ **Elmi Əhatə Dairəsindən Kənar Sorğu (Raket Mühərriki Yanacaqları İstisnadır):**\n\n"
+                "Raket mühərriklərinin yanacaqları (kriogen LOX/LH₂, hiperqolik yanacaqlar, bərk raket sürətləndiriciləri) kosmik gəmi kabinlərinin yanğın təhlükəsizliyi əhatə dairəsinə daxil deyil və NASA PSI mikroyerçəkim yanma bazasında yer almır. "
+                "Bu spesifik sorğu üçün NASA PSI qeydlərində empirik məlumat yoxdur."
+            )
+        return (
+            "⚠️ **Out of Scientific Scope (Rocket Engine Propellants Excluded):**\n\n"
+            "Rocket engine propellants (cryogenic LOX/LH2, hypergolics, solid boosters) are outside the scope of spacecraft cabin fire safety and are not included in the NASA PSI microgravity combustion dataset. "
+            "Insufficient empirical data in NASA PSI records for this specific query."
+        )
 
     # 0. Specific Experiment ID Explanation (exact lookup from fire_safety.db)
     requested_exp_ids = (rag_context or {}).get("requested_exp_ids") or []
