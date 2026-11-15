@@ -12,7 +12,7 @@ const int irPin     = 25;       // IR Alov Sensoru DO (GPIO 25)
 const int buzzerPin = 23;       // Buzzer (GPIO 23)
 
 // ─── HƏSSASLIQ HƏDLƏRİ ──────────────────────────────────────────
-const int mq2Threshold = 550;   
+const int mq2Threshold = 1000;   
 const int mq4Threshold = 3500;  
 
 bool soundEnabled = true; 
