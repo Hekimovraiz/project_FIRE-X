@@ -1380,8 +1380,8 @@
     if (!d) return '';
     const parts = [];
     if (d.ir_flame_detected) parts.push(T('🔥 ALOV aşkarlandı', '🔥 FLAME detected'));
-    if ((d.raw_smoke_adc || 0) > 1000) parts.push(`MQ-2 ${d.raw_smoke_adc}`);
-    if ((d.mq4_adc || 0) > 2500) parts.push(`MQ-4 ${d.mq4_adc}`);
+    if ((d.raw_smoke_adc || 0) > 850) parts.push(`MQ-2 ${d.raw_smoke_adc}`);
+    if ((d.mq4_adc || 0) > 2700) parts.push(`MQ-4 ${d.mq4_adc}`);
     return parts.join(' · ');
   }
 

@@ -194,8 +194,8 @@ pytest -q                                    # API smoke tests (same as CI)
 |:--|:--|:--|
 | `OPENAI_API_KEY` | none | Enables LLM answers in the AI assistant (server-side only, never sent to the browser) |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Model used by the assistant |
-| `MQ2_DANGER_THRESHOLD` | `1000` | Fallback MQ-2 ADC threshold when the board does not send its own verdict |
-| `MQ4_DANGER_THRESHOLD` | `2500` | Fallback MQ-4 ADC threshold |
+| `MQ2_DANGER_THRESHOLD` | `850` | Fallback MQ-2 ADC threshold when the board does not send its own verdict |
+| `MQ4_DANGER_THRESHOLD` | `2700` | Fallback MQ-4 ADC threshold |
 | `ESP32_HTTP_TIMEOUT` | `2.0` | Seconds to wait for the board on each poll |
 </details>
 

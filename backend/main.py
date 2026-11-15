@@ -334,8 +334,8 @@ ESP32_STATIC_IP = os.getenv("ESP32_STATIC_IP", "192.168.137.120")
 ESP32_HTTP_TIMEOUT = float(os.getenv("ESP32_HTTP_TIMEOUT", "2.0"))
 # Must match mq2Threshold / mq4Threshold in hardware/firex_esp32_hotspot firmware,
 # otherwise the website shows a hazard while the buzzer stays silent (or vice versa).
-MQ2_DANGER_THRESHOLD = int(os.getenv("MQ2_DANGER_THRESHOLD", "1000"))
-MQ4_DANGER_THRESHOLD = int(os.getenv("MQ4_DANGER_THRESHOLD", "2500"))
+MQ2_DANGER_THRESHOLD = int(os.getenv("MQ2_DANGER_THRESHOLD", "850"))
+MQ4_DANGER_THRESHOLD = int(os.getenv("MQ4_DANGER_THRESHOLD", "2700"))
 _ESP32_HTTP_LOCK = threading.Lock()
 
 
