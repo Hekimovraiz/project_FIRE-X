@@ -67,6 +67,7 @@ def get_verified_citations_for_query(query: str) -> Tuple[List[Dict[str, Any]], 
     exp_ids = [
         tok for tok in re.findall(r'\b[A-Z0-9]+(?:[-/][A-Z0-9]+)+\b', (query or "").upper())
         if any(tok.startswith(p) for p in exp_prefixes) and tok not in suite_names
+        and not tok.startswith("NASA-STD")  # standards (NASA-STD-6001/3001) are not experiment IDs
     ]
 
     if exp_ids:
@@ -243,6 +244,14 @@ def format_citation_locked_response(
         return f"{response_text}\n\n{MANDATORY_SAFETY_DISCLAIMER}"
 
     matched_records, citations_block = get_verified_citations_for_query(query)
+
+    if not matched_records and is_scientific_query(query):
+        # Broad scientific question (e.g. simulator ranking prompt) with no keyword hit:
+        # ground it on the core PSI-verified investigations instead of discarding the answer.
+        for fallback_q in ("FLEX", "BASS-II", "SAFFIRE-I"):
+            matched_records, citations_block = get_verified_citations_for_query(f"{query} {fallback_q}")
+            if matched_records:
+                break
 
     if not matched_records and not is_scientific_query(query):
         # General / platform question with no scientific claim: no source block, no disclaimer, no refusal
