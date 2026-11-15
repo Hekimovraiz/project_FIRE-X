@@ -16,6 +16,7 @@ const int mq2Threshold = 1000;
 const int mq4Threshold = 2500;  
 
 bool soundEnabled = true; 
+unsigned long buzzerTestUntil = 0;
 unsigned long lastSerialPrint = 0;
 
 WiFiServer server(80);
@@ -64,8 +65,9 @@ void loop() {
   bool irFlameDetected = (irState == LOW);
 
   bool danger = (mq2Value > mq2Threshold) || (mq4Value > mq4Threshold) || irFlameDetected;
+  bool testActive = (millis() < buzzerTestUntil);
 
-  if (danger && soundEnabled) {
+  if (testActive || (danger && soundEnabled)) {
     digitalWrite(buzzerPin, HIGH);
   } else {
     digitalWrite(buzzerPin, LOW);
@@ -98,6 +100,28 @@ void loop() {
               soundEnabled = true;
             } else if (requestHeader.indexOf("GET /sound/off") != -1) {
               soundEnabled = false;
+            } else if (requestHeader.indexOf("GET /buzzer/test") != -1) {
+              buzzerTestUntil = millis() + 2500;
+            }
+
+            if (requestHeader.indexOf("GET /data") != -1) {
+              client.println("HTTP/1.1 200 OK");
+              client.println("Content-type:application/json; charset=utf-8");
+              client.println("Access-Control-Allow-Origin: *");
+              client.println("Connection: close");
+              client.println();
+              client.print("{\"mq2\":");
+              client.print(mq2Value);
+              client.print(",\"mq4\":");
+              client.print(mq4Value);
+              client.print(",\"flame\":");
+              client.print(irFlameDetected ? "true" : "false");
+              client.print(",\"sound\":");
+              client.print(soundEnabled ? "true" : "false");
+              client.print(",\"danger\":");
+              client.print(danger ? "true" : "false");
+              client.println("}");
+              break;
             }
 
             client.println("HTTP/1.1 200 OK");

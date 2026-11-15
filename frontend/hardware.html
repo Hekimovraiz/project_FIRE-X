@@ -1162,44 +1162,101 @@ function renderTelemetryChart(history) {
   svg.innerHTML = out;
 }
 
-let currentSoundEnabled = true;
+let currentSoundEnabled = (localStorage.getItem('firex_sound_enabled') !== 'false');
 const L = (az, en) => (getLang() === 'az' ? az : en);
 const soundLabel = on => on ? L('🔊 Səs: AÇIQ', '🔊 Sound: ON') : L('🔇 Səs: SƏSSİZ', '🔇 Sound: MUTED');
+
+let _hwAudioCtx = null;
+let _hwBeepNodes = [];
+
+function stopBrowserBuzzer() {
+  _hwBeepNodes.forEach(n => { try { n.stop(); n.disconnect(); } catch (_) {} });
+  _hwBeepNodes = [];
+}
+
+function playBrowserBuzzer(durationMs = 2000) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!_hwAudioCtx) _hwAudioCtx = new AudioCtx();
+    if (_hwAudioCtx.state === 'suspended') _hwAudioCtx.resume();
+    stopBrowserBuzzer();
+    const now = _hwAudioCtx.currentTime;
+    const totalSec = durationMs / 1000;
+    for (let t = 0; t < totalSec; t += 0.35) {
+      const osc = _hwAudioCtx.createOscillator();
+      const gain = _hwAudioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(2200, now + t);
+      gain.gain.setValueAtTime(0.06, now + t);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.22);
+      osc.connect(gain);
+      gain.connect(_hwAudioCtx.destination);
+      osc.start(now + t);
+      osc.stop(now + t + 0.24);
+      _hwBeepNodes.push(osc);
+    }
+  } catch (_) {}
+}
+
+function applySoundButtonUI(enabled) {
+  const btn = document.getElementById('hw-btn-sound');
+  if (!btn) return;
+  btn.textContent = soundLabel(enabled);
+  btn.style.background = enabled ? 'rgba(0,230,118,0.15)' : 'rgba(255,107,53,0.15)';
+  btn.style.borderColor = enabled ? 'rgba(0,230,118,0.45)' : 'rgba(255,107,53,0.45)';
+  btn.style.color = enabled ? '#00E676' : '#FF6B35';
+}
 
 async function testBuzzer() {
   const btn = document.getElementById('hw-btn-buzzer-test');
   if (btn) btn.disabled = true;
-  // site-wide red flash for 3 s (nav.js) — sound comes only from the ESP32 buzzer
+  // Site-wide red flash for 3 s (nav.js) + browser piezo buzzer feedback
   window.dispatchEvent(new CustomEvent('firex-siren-test', { detail: { ms: 3000 } }));
+  playBrowserBuzzer(2000);
+  if (btn) btn.textContent = L('🔔 Çalır (2.5s)...', '🔔 Buzzing (2.5s)...');
   try {
     const res = await fetch('/api/sensor-buzzer-test', { method: 'POST' });
     const json = res.ok ? await res.json() : null;
     if (!json || !json.success) {
-      alert(L('ESP32 cavab vermədi — cihaz Wi-Fi-a qoşulubmu?\n\nQeyd: bu düymə yeni firmware tələb edir (hardware/firex_esp32_hotspot).',
-              'The ESP32 did not respond — is it connected to Wi-Fi?\n\nNote: this button needs the new firmware (hardware/firex_esp32_hotspot).'));
-    } else if (btn) {
-      btn.textContent = L('🔔 3 san. çalır...', '🔔 Siren 3 s...');
-      setTimeout(() => { btn.textContent = '🔔 Buzzer Test'; }, 3000);
+      const adv = document.getElementById('hw-advisory-text');
+      if (adv) {
+        adv.textContent = L(
+          'Buzzer sınağı brauzerdə icra olundu. Fiziki ESP32 yerli şəbəkədə (LAN) cavab vermədi — cihazın eyni Wi-Fi/hotspotda olduğunu yoxlayın.',
+          'Buzzer test played in browser. Physical ESP32 did not respond on LAN — ensure it is on the same Wi-Fi/hotspot.'
+        );
+      }
     }
   } catch (_) {
   } finally {
-    setTimeout(() => { if (btn) btn.disabled = false; }, 2000);
+    setTimeout(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔔 Buzzer Test';
+      }
+    }, 2500);
   }
 }
 
 async function toggleBuzzerSound() {
   const nextState = !currentSoundEnabled;
-  // The backend forwards /sound/on|off to the ESP32 — the browser does not call it directly.
+  currentSoundEnabled = nextState;
+  localStorage.setItem('firex_sound_enabled', String(nextState));
+  applySoundButtonUI(nextState);
+  if (!nextState) stopBrowserBuzzer();
+  else playBrowserBuzzer(220);
+
   try {
     const res = await fetch('/api/sensor-sound?enabled=' + nextState, { method: 'POST' });
     if (res.ok) {
-      currentSoundEnabled = nextState;
-      const btn = document.getElementById('hw-btn-sound');
-      if (btn) {
-        btn.textContent = soundLabel(currentSoundEnabled);
-        btn.style.background = currentSoundEnabled ? 'rgba(0,230,118,0.15)' : 'rgba(255,107,53,0.15)';
-        btn.style.borderColor = currentSoundEnabled ? 'rgba(0,230,118,0.45)' : 'rgba(255,107,53,0.45)';
-        btn.style.color = currentSoundEnabled ? '#00E676' : '#FF6B35';
+      const json = await res.json();
+      if (json && !json.delivered_to_esp32) {
+        const adv = document.getElementById('hw-advisory-text');
+        if (adv) {
+          adv.textContent = nextState
+            ? L('Səs rejimi AÇIQ seçildi (fiziki ESP32 qoşulanda avtomatik sinxronlaşacaq).', 'Sound set to ON (will sync automatically when physical ESP32 connects).')
+            : L('Səs rejimi SƏSSİZ seçildi (fiziki ESP32 qoşulanda avtomatik sinxronlaşacaq).', 'Sound set to MUTED (will sync automatically when physical ESP32 connects).');
+        }
       }
     }
   } catch (err) {
@@ -1471,10 +1528,10 @@ function renderHardwareState(s) {
   if (espIpEl) espIpEl.textContent = s.esp32_ip || '—';
   if (soundBtn && s.sound_enabled !== undefined) {
     currentSoundEnabled = Boolean(s.sound_enabled);
-    soundBtn.textContent = soundLabel(currentSoundEnabled);
-    soundBtn.style.background = currentSoundEnabled ? 'rgba(0,230,118,0.15)' : 'rgba(255,107,53,0.15)';
-    soundBtn.style.borderColor = currentSoundEnabled ? 'rgba(0,230,118,0.45)' : 'rgba(255,107,53,0.45)';
-    soundBtn.style.color = currentSoundEnabled ? '#00E676' : '#FF6B35';
+    localStorage.setItem('firex_sound_enabled', String(currentSoundEnabled));
+    applySoundButtonUI(currentSoundEnabled);
+  } else {
+    applySoundButtonUI(currentSoundEnabled);
   }
 
   const fhi = Number(s.fire_hazard_index || 0.0);
@@ -1886,6 +1943,9 @@ function runRecordedTestbedPlayback() {
       return;
     }
     const pt = samples[idx];
+    if (pt.status === 'HAZARD_ALERT' && currentSoundEnabled) {
+      playBrowserBuzzer(450);
+    }
     const nowStr = new Date().toLocaleTimeString();
     hist.push({ timestamp: nowStr, gas_ppm: pt.gas_ppm, smoke_pct: pt.smoke_pct, fhi: pt.fhi });
     renderHardwareState({
@@ -1924,6 +1984,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     urlEl.textContent = window.location.origin + '/api/sensor-data';
   }
   translateStaticPage();
+  applySoundButtonUI(currentSoundEnabled);
   renderTelemetryChart([]);
   try { await fetch('/api/sensor-simulate?action=disconnect', { method: 'POST' }); } catch (_) {}
   startPolling();

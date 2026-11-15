@@ -625,6 +625,11 @@ def poll_esp32_static_ip(target_ip: Optional[str] = None) -> bool:
     ip = (target_ip or LATEST_SENSOR_STATE.get("esp32_ip") or ESP32_STATIC_IP).strip()
     if not ip or ip == "—":
         ip = ESP32_STATIC_IP
+    pending = LATEST_SENSOR_STATE.get("pending_sound_command")
+    if pending is not None:
+        snd_path = "/sound/on" if pending else "/sound/off"
+        if _esp32_http_get(f"http://{ip}{snd_path}") is not None:
+            LATEST_SENSOR_STATE["pending_sound_command"] = None
     # Old firmware answers every path (including /data) with its HTML page,
     # so a single request to /data works for both firmware versions.
     raw = _esp32_http_get(f"http://{ip}/data")
